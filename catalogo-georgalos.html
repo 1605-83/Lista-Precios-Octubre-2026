@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catálogo Georgalos LP - ELEBES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: pensado para el celular. Un producto por renglon (foto chica a la izquierda, datos y precios a la derecha);
+   en pantallas anchas, 2 o 3 columnas. Cada segmento arranca con una linea divisoria y su titulo. */
+:root{
+  --bg:#ffffff; --fg:#14181f; --muted:#5b6472; --line:#dde2ea; --soft:#f5f7fa;
+  --marca:#d71920; --on-marca:#ffffff;
+  --f-ui:"Archivo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:130px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.35;padding:0 16px 48px}
+.wrap{max-width:1100px;margin:0 auto}
+header{padding-block:20px 12px}
+h1{margin:0;font-size:1.5rem;font-weight:800;color:var(--marca)}
+.sub{margin:4px 0 0;color:var(--muted);font-size:.9rem}
+/* segmentos: barra fija arriba, se desliza de costado en el celular */
+.arriba{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--bg);margin:0 -16px;padding:10px 16px 0;border-bottom:1px solid var(--line)}
+.buscar{display:block;width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+.buscar:focus-visible{outline:2px solid var(--marca);outline-offset:1px;border-color:var(--marca)}
+.cuenta{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 0}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--marca);background:var(--bg);border:1.5px solid var(--marca);border-radius:999px;padding:6px 12px;white-space:nowrap}
+nav button.activa{background:var(--marca);color:var(--on-marca)}
+nav button:not([data-seg="todos"]).activa::before{content:"✓ "}
+nav button:focus-visible{outline:2px solid var(--marca);outline-offset:2px}
+section{margin-top:36px;padding-top:18px;border-top:3px solid var(--marca)}
+section:first-of-type{margin-top:20px}
+h2{margin:0 0 14px;font-size:1.15rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--marca);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h2 small{font-size:.8rem;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
+.sub{margin-top:22px;padding-top:12px;border-top:3px solid var(--c)}
+.sub:first-of-type{margin-top:6px}
+h3{margin:0 0 12px;font-size:1rem;font-weight:800;color:var(--c);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h3 small{font-size:.8rem;font-weight:500;color:var(--muted)}
+.sub[hidden]{display:none!important}
+.lista{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:700px){.lista{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1050px){.lista{grid-template-columns:repeat(3,1fr)}}
+.prod{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;padding:10px;border:1.5px solid var(--marca);border-radius:10px;min-width:0;break-inside:avoid;page-break-inside:avoid}
+.foto{width:96px;height:96px;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;overflow:hidden}
+.foto img{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff}
+.prod[hidden],section[hidden]{display:none!important}
+mark{background:#fff1a8;color:inherit;padding:0}
+.foto .sin{font-weight:800;font-size:.7rem;color:var(--marca);opacity:.45;letter-spacing:.05em;text-align:center;padding:4px}
+.datos{min-width:0;display:flex;flex-direction:column;gap:3px}
+.desc{font-weight:700;font-size:.95rem;overflow-wrap:anywhere}
+.cod{font-family:var(--f-num);font-size:.75rem;color:var(--muted)}
+.precios{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px;align-items:baseline}
+.precio{display:flex;align-items:baseline;gap:6px}
+.precio span{font-size:.75rem;color:var(--muted)}
+.precio b{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.precio.bulto b{font-size:1.05rem;color:var(--marca)}
+.estado{color:var(--muted);margin-top:24px}
+footer{margin-top:32px;color:var(--muted);font-size:.8rem}
+@media print{
+  @page{size:A4;margin:10mm}
+  body{padding:0;font-size:11px}
+  nav{display:none}
+  .lista{grid-template-columns:repeat(2,1fr);gap:6px}
+  .prod{grid-template-columns:70px 1fr;padding:6px}
+  .foto{width:70px;height:70px}
+  section{break-inside:auto;border-top-color:var(--marca);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h2{break-after:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Catálogo Georgalos</h1>
+    <p class="sub">Lago Puelo · Elebes · Lista 1 con IVA · <span id="vig"></span></p>
+  </header>
+  <div class="arriba">
+    <input class="buscar" id="q" type="search" placeholder="Buscar por código o descripción (ej. Mantecol, Toddy, 2332510)" aria-label="Buscar producto" autocomplete="off">
+    <p class="cuenta" id="cuenta" hidden></p>
+    <nav id="nav" aria-label="Segmentos"></nav>
+  </div>
+  <div id="cat"><p class="estado">Cargando el catálogo…</p></div>
+  <footer>Precios en pesos argentinos con IVA. Se actualizan solos cuando cambian en Gescom. Fotos ilustrativas.</footer>
+</div>
+<script>
+// Segmentos en el orden del catalogo de Georgalos; el segmento de cada producto viene de segmentos-georgalos.json
+// (de la pagina del catalogo, o de la descripcion para los productos que no estan en el catalogo)
+const ORDEN = ['Golosinas','Pastillas inhalantes','Chocolates','Repostería','Alfajores','Wafers','Mantecol','Turrón y maní','Cacao en polvo','Galletas','Barritas','Cereales','Budines','Otros'];
+const SUBLINEAS = {};
+const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fecha = iso => iso ? iso.split('-').reverse().join('/') : '';
+const limpiar = d => d.replace(/\s+/g,' ').trim();
+const marca = d => ((d.match(/TODDY|MANTECOL|FLYNN|PALITO|FULL ?MAN[IÍ]|FULL ?MINT|TOKKE|FLOW|NUTRI|BALANCE|LENG[UÜ]ETAZO|BAZOOKA/i) || ['GEORGALOS'])[0].toUpperCase());
+const FOTOS_V = '1';   // cambiar cuando se reemplazan las fotos, para que el navegador no muestre las viejas
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+// Segmentos tildados: ninguno = se ven todos; uno o varios = solo esos (se combinan con el buscador)
+const elegidos = new Set();
+function tildar(id){
+  if (id === 'todos') elegidos.clear(); else if (elegidos.has(id)) elegidos.delete(id); else elegidos.add(id);
+  document.querySelectorAll('nav button').forEach(b => {
+    const on = b.dataset.seg === 'todos' ? elegidos.size === 0 : elegidos.has(b.dataset.seg);
+    b.classList.toggle('activa', on); b.setAttribute('aria-pressed', on);
+  });
+  buscar();
+  window.scrollTo({top: 0});
+}
+// Buscador: oculta los productos que no coinciden y los segmentos que quedan vacios o no estan tildados
+function buscar(){
+  const q = norm(document.getElementById('q').value.trim());
+  const palabras = q.split(/\s+/).filter(Boolean);   // tienen que estar todas, en cualquier orden
+  let n = 0;
+  document.querySelectorAll('section').forEach(sec => {
+    const tildado = elegidos.size === 0 || elegidos.has(sec.id);
+    let vis = 0;
+    sec.querySelectorAll('.prod').forEach(pr => { const ok = tildado && palabras.every(w => pr.dataset.buscar.includes(w)); pr.hidden = !ok; if (ok) vis++; });
+    sec.querySelectorAll('.sub').forEach(s => { s.hidden = !s.querySelector('.prod:not([hidden])'); });
+    sec.hidden = vis === 0; n += vis;
+  });
+  const c = document.getElementById('cuenta');
+  const filtra = q || elegidos.size;
+  c.hidden = !filtra; c.textContent = n ? `${n} ${n === 1 ? 'producto' : 'productos'}` : 'Ningún producto coincide con la búsqueda.';
+}
+function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
+
+Promise.all(['datos.json', 'segmentos-georgalos.json'].map(u => fetch(u, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }))).then(([d, SEG]) => {
+  const ls = d.listas.filter(x => x.proveedor === '42' || x.proveedor === '43');
+  const l = { vigencia: ls.map(x => x.vigencia).sort().pop(), productos: ls.flatMap(x => x.productos) };
+  document.getElementById('vig').textContent = 'vigencia ' + fecha(l.vigencia);
+  const grupos = ORDEN.map(nombre => ({nombre, prods: []}));
+  for (const p of l.productos) { const i = ORDEN.indexOf(SEG[String(p[0])]); grupos[i < 0 ? ORDEN.length - 1 : i].prods.push(p); }
+  const usados = grupos.filter(g => g.prods.length);
+  document.getElementById('nav').innerHTML = `<button type="button" data-seg="todos" class="activa" aria-pressed="true">Todos</button>` +
+    usados.map((g, i) => `<button type="button" data-seg="s${i}" aria-pressed="false">${esc(g.nombre)}</button>`).join('');
+  document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => tildar(b.dataset.seg)));
+  const tarjeta = p => {
+    const unidad = p[3] ? p[4] / p[3] : p[6];
+    return `<article class="prod" data-buscar="${esc(norm(p[0] + ' ' + p[1]))}">
+      <div class="foto"><img src="img/georgalos/${esc(p[0])}.jpg?v=${FOTOS_V}" alt="${esc(limpiar(p[1]))}" loading="lazy" onerror="sinFoto(this,'${esc(marca(p[1]))}')"></div>
+      <div class="datos">
+        <div class="desc">${esc(limpiar(p[1]))}</div>
+        <div class="cod">Cód. ${esc(p[0])}${p[3] ? ' · bulto x' + p[3] : ''}</div>
+        <div class="precios">
+          ${p[4] != null ? `<div class="precio bulto"><span>Bulto</span><b>${fmt.format(p[4])}</b></div>` : ''}
+          ${unidad != null ? `<div class="precio"><span>Unidad</span><b>${fmt.format(unidad)}</b></div>` : ''}
+        </div>
+      </div>
+    </article>`; };
+  // Un segmento con sublineas se separa con una linea del color de cada linea
+  const cuerpo = g => {
+    const subs = SUBLINEAS[g.nombre];
+    if (!subs) return `<div class="lista">${g.prods.map(tarjeta).join('')}</div>`;
+    const partes = subs.map(([nombre, color]) => ({nombre, color, prods: []}));
+    for (const p of g.prods) partes[subs.findIndex(([, , f]) => f(p[1]))].prods.push(p);
+    return partes.filter(s => s.prods.length).map(s => `
+      <div class="sub" style="--c:${s.color}">
+        <h3>${esc(s.nombre)} <small>${s.prods.length} productos</small></h3>
+        <div class="lista">${s.prods.map(tarjeta).join('')}</div>
+      </div>`).join('');
+  };
+  document.getElementById('cat').innerHTML = usados.map((g, i) => `
+    <section id="s${i}">
+      <h2>${esc(g.nombre)} <small>${g.prods.length} productos</small></h2>
+      ${cuerpo(g)}
+    </section>`).join('');
+  buscar();
+}).catch(() => { document.getElementById('cat').innerHTML = '<p class="estado">No se pudo cargar el catálogo. Recargá la página en unos minutos.</p>'; });
+document.getElementById('q').addEventListener('input', buscar);
+</script>
+</body>
+</html>
