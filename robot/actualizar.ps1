@@ -73,7 +73,9 @@ $excluirProveedores = @(
   '13',   # LAGO PUELO
   '1',    # MILKAUT
   '82',   # MORIXE
-  '49'    # PROTEINAS ARGENTINAS
+  '49',   # PROTEINAS ARGENTINAS
+  '50',   # PRIMEROS PRODUCTOS PEHUENIA
+  '63'    # CELUPAPER
 )
 
 # Colores del encabezado de cada lista (Softys azul oscuro y Clorox verde, como en la lista original; el resto en orden)
