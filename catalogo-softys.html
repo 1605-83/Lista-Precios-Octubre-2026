@@ -30,6 +30,7 @@ h1{margin:0;font-size:1.5rem;font-weight:800;color:var(--marca)}
 nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 0}
 nav::-webkit-scrollbar{display:none}
 nav a{flex:0 0 auto;font-size:.85rem;font-weight:600;text-decoration:none;color:var(--marca);border:1.5px solid var(--marca);border-radius:999px;padding:6px 12px;white-space:nowrap}
+nav a.activa{background:var(--marca);color:var(--on-marca)}
 nav a:focus-visible{outline:2px solid var(--marca);outline-offset:2px}
 section{margin-top:36px;padding-top:18px;border-top:3px solid var(--marca)}
 section:first-of-type{margin-top:20px}
@@ -126,6 +127,26 @@ function buscar(){
   const c = document.getElementById('cuenta');
   c.hidden = !q; c.textContent = n ? `${n} ${n === 1 ? 'producto coincide' : 'productos coinciden'}` : 'Ningún producto coincide con la búsqueda.';
 }
+// Marca en color el segmento elegido y, al bajar por la pagina, el segmento que se esta viendo
+function marcarSegmentos(){
+  const links = [...document.querySelectorAll('nav a')];
+  const activar = id => links.forEach(a => {
+    const on = a.getAttribute('href') === '#' + id; a.classList.toggle('activa', on);
+    if (on) a.scrollIntoView({block: 'nearest', inline: 'center', behavior: 'smooth'});
+  });
+  let porClic = 0;
+  links.forEach(a => a.addEventListener('click', () => { porClic = Date.now(); activar(a.getAttribute('href').slice(1)); }));
+  const alto = () => document.querySelector('.arriba').getBoundingClientRect().bottom + 8;
+  const revisar = () => {
+    if (Date.now() - porClic < 900) return;   // mientras baja por un clic, queda marcado el elegido
+    const secs = [...document.querySelectorAll('section:not([hidden])')];
+    let actual = secs[0];
+    for (const s of secs) if (s.getBoundingClientRect().top <= alto() + 4) actual = s;
+    if (actual) activar(actual.id);
+  };
+  window.addEventListener('scroll', () => requestAnimationFrame(revisar), {passive: true});
+  revisar();
+}
 function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
 
 fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
@@ -166,6 +187,7 @@ fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.
       ${cuerpo(g)}
     </section>`).join('');
   buscar();
+  marcarSegmentos();
 }).catch(() => { document.getElementById('cat').innerHTML = '<p class="estado">No se pudo cargar el catálogo. Recargá la página en unos minutos.</p>'; });
 document.getElementById('q').addEventListener('input', buscar);
 </script>
