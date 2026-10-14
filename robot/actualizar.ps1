@@ -82,9 +82,16 @@ $excluirProveedores = @(
 $COLORES = @('7B1FA2','C62828','EF6C00','00838F','5D4037','AD1457','283593','558B2F','6D4C41','00695C','4527A0','BF360C',
              '37474F','9E9D24','0277BD','880E4F','2E7D32','D84315','512DA8','00796B','8D6E63','1565C0','6A1B9A','E65100','455A64')
 
+# Proveedores en los que Gescom no tiene cargadas las unidades por bulto y se calcula el bulto (pedido de Bruno, 14/10/2026)
+# con las cajas del deposito (codigos de barras) o con la descripcion + como se vende (ver ListaGeneral)
+$calcularBulto = @('119','505','54','14','43','42','2','3','510','92','324','450','418','8')
+# BIC, BRURIN, CASTELL, COMERCIALIZADORA LP, GENERAL CEREALS, GEORGALOS, ILOLAY, LCB, LEDESMA, MENOYO, NECHO, POLDITOS, PRO DE MAN, RIOSMA
+
 # ---------------- Filas de la base ----------------
 if ($FilasJson) {
-  $filas = @((Get-Content $FilasJson -Raw -Encoding UTF8 | ConvertFrom-Json) | ForEach-Object { $_ })
+  $leido = Get-Content $FilasJson -Raw -Encoding UTF8 | ConvertFrom-Json
+  if ($leido.precios) { $filas = @($leido.precios); $digip = @($leido.digip); $ventas = @($leido.ventas) }
+  else { $filas = @($leido | ForEach-Object { $_ }); $digip = @(); $ventas = @() }   # formato viejo: solo precios
 } else {
   $clave = $env:GESCOM_LPE_CLAVE
   if (-not $clave -and $PedirClave) {
@@ -93,21 +100,30 @@ if ($FilasJson) {
   }
   if (-not $clave) { throw 'Falta la variable de entorno GESCOM_LPE_CLAVE' }
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-  $sql = "SELECT p.articulo, a.descripcion, a.proveedor, pr.nombre AS proveedor_nombre, a.unidades_bulto, a.costo_bulto, a.bloqueado,
+  function Consulta([string]$sql) {
+    $p = @{ Uri = 'https://datos-gescom.panelempresas.workers.dev/consulta'; Method = 'POST'; UseBasicParsing = $true
+            Headers = @{ Authorization = "Bearer $clave" }; ContentType = 'application/json'
+            Body = [Text.Encoding]::UTF8.GetBytes((@{ sql = $sql } | ConvertTo-Json -Compress)) }
+    $r = Invoke-WebRequest @p
+    $j = [Text.Encoding]::UTF8.GetString($r.RawContentStream.ToArray()) | ConvertFrom-Json
+    if ($j.error) { throw "La base respondio error: $($j.error)" }
+    if ($j.truncado) { throw "La consulta se corto en $($j.cantidad) filas (tope de la base)" }
+    @($j.filas)
+  }
+  $filas = Consulta "SELECT p.articulo, a.descripcion, a.proveedor, pr.nombre AS proveedor_nombre, a.unidades_bulto, a.costo_bulto, a.bloqueado,
                  p.unidad, p.factor, p.neto, p.alicuota_iva, p.impuesto_interno, p.actualizado
           FROM precios p JOIN articulos a ON a.codigo = p.articulo LEFT JOIN proveedores pr ON pr.codigo = a.proveedor
           WHERE p.lista = '$LISTA' AND NULLIF(a.proveedor,'') IS NOT NULL"
-  $p = @{ Uri = 'https://datos-gescom.panelempresas.workers.dev/consulta'; Method = 'POST'; UseBasicParsing = $true
-          Headers = @{ Authorization = "Bearer $clave" }; ContentType = 'application/json'
-          Body = [Text.Encoding]::UTF8.GetBytes((@{ sql = $sql } | ConvertTo-Json -Compress)) }
-  $r = Invoke-WebRequest @p
-  $j = [Text.Encoding]::UTF8.GetString($r.RawContentStream.ToArray()) | ConvertFrom-Json
-  if ($j.error) { throw "La base respondio error: $($j.error)" }
-  if ($j.truncado) { throw "La consulta se corto en $($j.cantidad) filas (tope de la base)" }
-  $filas = @($j.filas)
+  $lp = ($calcularBulto | ForEach-Object { "'$_'" }) -join ','
+  # Cajas del deposito: unidades de cada presentacion que no es "Unidad"
+  $digip = Consulta "SELECT b.articulo, b.presentacion, MAX(b.unidades) AS unidades FROM digip_codigos_barras b JOIN articulos a ON a.codigo = b.articulo
+          WHERE a.proveedor IN ($lp) AND b.presentacion <> 'Unidad' GROUP BY b.articulo, b.presentacion"
+  # Como se vende: cuantos renglones de venta hubo con cada cantidad
+  $ventas = Consulta "SELECT i.articulo, i.cantidad, COUNT(*) AS n FROM venta_items i JOIN articulos a ON a.codigo = i.articulo JOIN ventas v ON v.id = i.venta_id
+          WHERE a.proveedor IN ($lp) AND v.tipo = 'VEN' AND i.cantidad > 0 GROUP BY i.articulo, i.cantidad"
   $clave = $null
   # copia local de lo leido (tiene costos: nunca dentro del repo), para revisar sin volver a consultar la base
-  if ($GuardarFilas) { [IO.File]::WriteAllText($GuardarFilas, ($filas | ConvertTo-Json -Depth 3), (New-Object Text.UTF8Encoding $false)) }
+  if ($GuardarFilas) { [IO.File]::WriteAllText($GuardarFilas, ([ordered]@{ precios = $filas; digip = $digip; ventas = $ventas } | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding $false)) }
 }
 if ($filas.Count -lt 100) { throw "La base devolvio solo $($filas.Count) precios: no se actualiza la lista para no publicar una lista incompleta" }
 
@@ -187,7 +203,43 @@ function ListaClorox {
 #   bulto (asi pasa en Softys); si no, es por unidad y el bulto = precio x unidades por bulto.
 # - Sin Pack y sin unidades por bulto (figura 1): no se sabe cuantas unidades trae el bulto, y la "unidad" de Gescom
 #   a veces es el paquete y a veces la caja. Se muestra solo el precio por unidad de venta de Gescom (7mo dato).
+#   En los proveedores de $calcularBulto se calcula igual el bulto (ver Bulto14).
 # - Se omiten articulos bloqueados y los que no tienen precio (exhibidores, material POP).
+
+# Cajas del deposito (mayor cantidad de unidades de una presentacion que no es "Unidad") y ventas por cantidad
+$cajaDep = @{}; foreach ($f in $digip) { $k = [string]$f.articulo; $u = [double]$f.unidades; if (-not $cajaDep.ContainsKey($k) -or $u -gt $cajaDep[$k]) { $cajaDep[$k] = $u } }
+$ventas14 = @{}; foreach ($v in $ventas) { $k = [string]$v.articulo; if (-not $ventas14.ContainsKey($k)) { $ventas14[$k] = @() }; $ventas14[$k] += ,@([double]$v.cantidad, [int]$v.n) }
+# Productos en los que la regla se equivoca y el precio de Gescom es el de la caja (revisado a mano)
+$precioEsCaja = @(69300)   # AZUCAR LEDESMA CLASICA 10X1KG: $14.247 es la caja (como el 6X800GR)
+
+# Unidades que trae el bulto segun la descripcion: "24X80GR", "48 X 170G", "x15u", "400GRS X24", "CJ X12"
+function UnidadesDesc([string]$d) {
+  $u = '(KG|KGS|GR|GRS|G|ML|CC|CM3|L|LT|LTS|LTR|U|UN|UNI|UNID|MT|MTS|M)(?![A-Z])'
+  if ($d -match "(?i)(?<!\d|\d[.,])(\d{1,3})\s*[xX]\s*\d+([.,]\d+)?\s*$u") { return [int]$matches[1] }
+  if ($d -match "(?i)[xX]\s*(\d{1,3})\s*(U|UN|UNI|UNID)\b") { return [int]$matches[1] }
+  if ($d -match "(?i)\d+\s*(GR|GRS|G|ML|CC|KG|L|LT)\s*[xX]\s*(\d{1,3})\b") { return [int]$matches[2] }
+  if ($d -match "(?i)\b(CJ|CAJA)\s*[xX]?\s*(\d{1,3})\b") { return [int]$matches[2] }
+  0
+}
+# Bulto de un producto sin unidades por bulto en Gescom. Devuelve @(cantidad, precio bulto, precio unidad) o $null.
+# 1) El deposito tiene una caja de N unidades: el precio de Gescom es por unidad (bulto = precio x N).
+# 2) El deposito tiene la caja como 1 unidad: el precio de Gescom es el de la caja (unidad = precio / N de la descripcion).
+# 3) Si no, N sale de la descripcion y se mira como se vende: si muchas ventas son de N, 2N... unidades, o si el precio
+#    dividido N seria demasiado bajo para una unidad, el precio es por unidad; si casi nunca se vende de a N, es de la caja.
+function Bulto14($c, $p) {
+  $precio = $p.unidad; $nd = UnidadesDesc $p.desc; $cod = Num $c
+  if ($precioEsCaja -contains $cod -and $nd -gt 1) { return ,@($nd, $precio, ($precio / $nd)) }
+  $nw = if ($cajaDep.ContainsKey($c)) { [int]$cajaDep[$c] } else { 0 }
+  if ($nw -gt 1) { return ,@($nw, ($precio * $nw), $precio) }
+  if ($nd -le 1) { return $null }
+  if ($nw -eq 1) { return ,@($nd, $precio, ($precio / $nd)) }
+  $vv = if ($ventas14.ContainsKey($c)) { $ventas14[$c] } else { @() }
+  $T = 0; $D = 0; foreach ($x in $vv) { $T += $x[1]; if ($x[0] % $nd -eq 0) { $D += $x[1] } }
+  if (($T -ge 5 -and $D / $T -ge 0.3) -or ($precio / $nd -lt 400)) { return ,@($nd, ($precio * $nd), $precio) }
+  if ($T -ge 5 -and $D / $T -le 0.1) { return ,@($nd, $precio, ($precio / $nd)) }
+  $null
+}
+
 function ListaGeneral($pv) {
   $out = @()
   foreach ($c in (CodigosDe $pv)) {
@@ -196,6 +248,10 @@ function ListaGeneral($pv) {
     $ub = [int][math]::Round($p.ub)
     if ($p.pack -gt 1) { $out += ,@($cod, $p.desc, $null, $p.factor, (R2 $p.pack), $null); continue }
     if (-not ($p.unidad -gt 1)) { continue }
+    if ($ub -le 1 -and $calcularBulto -contains $pv) {
+      $b = Bulto14 $c $p
+      if ($b) { $out += ,@($cod, $p.desc, $null, $b[0], (R2 $b[1]), $null, (R2 $b[2])); continue }
+    }
     if ($ub -le 1) { $out += ,@($cod, $p.desc, $null, $null, $null, $null, (R2 $p.unidad)); continue }
     if ($p.cb -gt 0 -and $p.unidad -ge $p.cb) { $bulto = $p.unidad } else { $bulto = $p.unidad * $ub }
     $out += ,@($cod, $p.desc, $null, $ub, (R2 $bulto), $null)
