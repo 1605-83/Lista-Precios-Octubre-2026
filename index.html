@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lista de precios Octubre 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lista de distribuidor, dos secciones (Softys / Clorox) con buscador fijo arriba */
+:root{
+  --bg:#ffffff; --fg:#14181f; --muted:#5b6472; --line:#d5dae2; --row:#f4f6f9;
+  --softys:#1f3d60; --clorox:#00a050; --on-accent:#ffffff; --hl:#fff4b3;
+  --f-ui:"Archivo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161c; --fg:#e8ecf2; --muted:#9aa4b2; --line:#2c3440; --row:#1a2029;
+  --softys:#3b6aa0; --clorox:#14a85a; --on-accent:#ffffff; --hl:#5a4d10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161c; --fg:#e8ecf2; --muted:#9aa4b2; --line:#2c3440; --row:#1a2029;
+  --softys:#3b6aa0; --clorox:#14a85a; --on-accent:#ffffff; --hl:#5a4d10; color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:14px;padding:0 16px 48px}
+.wrap{max-width:1040px;margin:0 auto}
+header{padding-block:24px 8px}
+h1{font-size:1.35rem;font-weight:700;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);margin:0}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:12px;z-index:2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.bar input{flex:1 1 240px;min-width:0;font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+.bar input:focus-visible,.bar a:focus-visible{outline:2px solid var(--softys);outline-offset:2px}
+.bar a{font-weight:600;text-decoration:none;padding:8px 12px;border-radius:6px;color:var(--on-accent)}
+.bar a.s{background:var(--softys)} .bar a.c{background:var(--clorox)}
+.count{color:var(--muted);font-size:.85rem;flex-basis:100%}
+section{margin-top:28px}
+.title{border:2px solid var(--fg);padding:8px 12px;font-weight:700;font-size:1rem;text-align:center;letter-spacing:.02em;margin:0 0 4px}
+.vig{color:var(--muted);font-size:.8rem;font-style:italic;margin:0 0 8px}
+.tbl{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+thead th{position:sticky;top:0;color:var(--on-accent);font-weight:700;font-size:.82rem;line-height:1.2}
+#softys thead th{background:var(--softys)} #clorox thead th{background:var(--clorox)}
+tbody tr:nth-child(even){background:var(--row)}
+td.n,th.n{text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.c,th.c{text-align:center;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+td.cod{font-family:var(--f-num);color:var(--muted)}
+mark{background:var(--hl);color:inherit;padding:0}
+.empty{padding:16px;color:var(--muted)}
+footer{margin-top:32px;color:var(--muted);font-size:.8rem}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Lista de precios Octubre 2026</h1>
+    <p class="sub">Softys y Clorox · Lista 1 · Precios con IVA incluido</p>
+  </header>
+
+  <div class="bar">
+    <input id="q" type="search" placeholder="Buscar por código o producto (ej. Babysec, Poett, 1504076)" aria-label="Buscar producto">
+    <a class="s" href="#softys">Softys</a>
+    <a class="c" href="#clorox">Clorox</a>
+    <span class="count" id="count"></span>
+  </div>
+
+  <section id="softys">
+    <p class="title">LISTA DE PRECIOS SOFTYS - OCTUBRE 2026 (LISTA 1 - PRECIOS CON IVA)</p>
+    <p class="vig">Vigencia: 13/10/2026</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Código</th><th>Descripción del producto</th><th class="c">Cant. por pallet (bultos)</th><th class="c">Cant. por bulto (unidades)</th><th class="n">Precio por bulto</th><th class="n">Precio por unidad</th></tr></thead>
+      <tbody id="tb-s"></tbody>
+    </table></div>
+  </section>
+
+  <section id="clorox">
+    <p class="title">LISTA DE PRECIOS CLOROX - OCTUBRE 2026 (LISTA 1 - PRECIOS CON IVA)</p>
+    <p class="vig">Vigencia: 14/10/2026</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Código</th><th>Descripción del producto</th><th class="c">Cant. por bulto (unidades)</th><th class="n">Precio por bulto</th><th class="n">Precio por unidad</th></tr></thead>
+      <tbody id="tb-c"></tbody>
+    </table></div>
+  </section>
+
+  <footer>Precios en pesos argentinos con IVA (21%). El precio por unidad es el precio del bulto dividido la cantidad por bulto.</footer>
+</div>
+
+<script>
+const SOFTYS=[[1501553,"PH HIGIENOL DH PLUS FUSIÓN 30M x4/10",48,10,32102.36],
+[1501554,"PH HIGIENOL DH BALANCE 30M X4/10",48,10,33606.08],
+[1501556,"PH HIGIENOL PLUS DH 20x4",60,12,27652.08],
+[1501584,"PH HIGIENOL HS MAX ALOE PANAL 100M 4x/10",48,10,56270.24],
+[1501585,"PH HIGIENOL HS MAX ALOE PANAL 80M X4",48,10,44166.67],
+[1501586,"PH HIGIENOL HS MAX 50x4",60,12,37310.89],
+[1501618,"PH HIG  FRESH ALOE 30M X4/12",60,12,23028.83],
+[1501622,"PH HIG FRESH ALOE30m x6/10",60,10,28216.62],
+[1501627,"PH Higienol HS Balanced 20mx4/12",60,12,16188.06],
+[1501854,"PH Higienol Texturado 30m x4/12",60,12,21183.75],
+[1501900,"PH HS HIGIENOL RINDE PANAL 50 M X4/",60,12,36116.77],
+[1501939,"PH HIGIENOL DH PLUS MZ 30M x18/2",null,2,59730.2],
+[1501941,"PH HIGIENOL DH 30x18 PACK CONV",48,2,24743.25],
+[1502206,"RC ELITE ULTRA CON ALGODON 120p x2/10",40,10,31911.45],
+[1502319,"SE ELITE 33 GOLD DISEÑO NAVIDAD X48",21,48,174843.97],
+[1502383,"SE ELITE X200/15 ULTRA SUAVE",15,15,61761.81],
+[1502384,"SE ELITE X100/30 ULTRA SUAVE",15,30,64564.55],
+[1502418,"PH ELITE HS CLS 30M x12/4",null,4,16826.41],
+[1502419,"PH ELITE CC HS 30x12 PACK CONVE",60,4,16826.41],
+[1502607,"PH ELITE ULTRA DH SOFT T C/ALG 30Mx4",60,10,33708.89],
+[1502608,"PH ELITE DH ULTRA SUAVE 50X4",60,6,30382.68],
+[1502610,"PH ELITE HS CLS C/ALGODON 30M X6/10",60,10,29627.15],
+[1502611,"PH ELITE HS CLS C ALGODON 50M X4X12",60,12,39265.25],
+[1502612,"PH ELITE HS CLS C/ALGODON 80M X4/10",48,10,50084.3],
+[1502613,"PH ELITE HS 30M X4 /12",60,12,24178.78],
+[1502614,"PH ELITE TH SOFTY X30M X4/10",48,10,44133.71],
+[1503118,"TH BABYSEC ULTRA 50/24",null,24,47490.72],
+[1503119,"TH BABYSEC ULTRA 150/8",null,8,47506.1],
+[1503121,"TH Babysec Premium 50/10",null,10,66341.15],
+[1503126,"TH Babysec Multiuso x 120 un",null,12,42320.72],
+[1503131,"TH BABYSEC PREMIUM X45/10",114,10,29953.07],
+[1503132,"Toallas Hum Babysec Ultrafresh 50/24",72,24,47493.56],
+[1503134,"TH BABYSEC ULTRAFRESH X 150/8",72,8,43306.18],
+[1504075,"PL BABYSEC ULTRASOF CH 12/18",36,18,53107.71],
+[1504076,"PL BABYSEC ULTRASOFT M 8/20",36,20,59008.18],
+[1504077,"PL BABYSEC ULTRASOFT G 8/20",36,20,59008.18],
+[1504078,"PL BABYSEC ULTRASOFT XG X8/15",39,15,44255.85],
+[1504079,"PL BABYSEC ULTRASOFT XXG 8/15",36,15,44255.85],
+[1504085,"PL BABYSEC ULTRASOFT M x68/3",39,3,52176.88],
+[1504086,"PL BABYSEC ULTASOFT G x60/3",36,3,52176.88],
+[1504087,"PL BABYSEC ULTRASOFT XG x52/3",33,3,52176.88],
+[1504088,"PL BABYSEC ULTRSOFT XXG x50/4",25,4,69572.07],
+[1504205,"PL BABYSEC ULTRASOFT M 48/4",36,4,47340.92],
+[1504206,"PL BABYSEC ULTRASOFT G 40/4",36,4,47340.92],
+[1504207,"PL BABYSEC ULTRASOFT XG 32/4",35,4,47340.92],
+[1504208,"BABYSEC ULTSOFT XX6 30/4",36,4,47340.92],
+[1504215,"PL BABYSEC SUPERPREMIUM XXG x44/3",36,3,79645.25],
+[1504216,"PL BABYSEC SUPERPREIUM XG x48x3",33,3,79645.25],
+[1504217,"PL BABYSEC SUPERPREMIUM G x60/3",33,3,79645.25],
+[1504218,"PL BABYSEC SUPERPREMIUM M x48/4",36,4,69300.22],
+[1504219,"PL BABYSEC SUPERPREMIUM CH x30x6",48,6,69305.29],
+[1504275,"BABYSEC PREMIUM CHX 12/18",36,18,67868.92],
+[1504279,"PL BABYSEC PREM SOFT Mx48/4",36,4,57984.99],
+[1504282,"PL BABYSEC PREMIUM SOFT Gx 40/4",36,4,57984.99],
+[1504283,"PL BABYSEC SUPERPREM REC NAC 20X10",40,10,88831.79],
+[1504286,"PLBABYSEC PREMIUMS  XGx32/4",36,4,57984.99],
+[1504287,"PL BABYSEC PREMIUM SOFT XG X8/15",39,15,56558.16],
+[1504289,"PLBABYSEC PREM SOFTXXG x30/4",36,4,57984.99],
+[1504290,"PL BABYSEC PREMIUM SOFT XXG X8/15",36,15,56558.16],
+[1504291,"PL BABYSEC PREMIUM SOFT G 60/3",33,3,66625.95],
+[1504292,"PL BABYSEC PREMIUM SOFT XG 48/3",33,3,66625.95],
+[1504293,"PL BABYSEC PREMIUM SOFT XXGx44/3",36,3,66625.95],
+[1504295,"PL BABYSEC PREMIUM SOFT M X8/20",36,20,75409.91],
+[1504296,"PL BABYSEC PREMIUM SOFT G X8/20",36,20,75409.91],
+[1504297,"PAñAL BABYSEC PANTS PR G X 28U/",30,6,74891.58],
+[1504298,"PAñAL babysec PANTS PREM XGx22u 6",30,6,74891.58],
+[1504299,"PAñAL babysec PANTS PREM XXGx20u 6",30,6,74891.58],
+[1504345,"TF Cotidian Lady 16u x24",null,24,142105.36],
+[1504352,"PL COTIDIAN CLAS TANGA MX8",18,8,55384.7],
+[1504353,"PL COTIDIAN CLAS TANGA GX8",18,8,55384.7],
+[1504738,"PL BABYSEC ULTRA P 30/6",48,6,0],
+[1504739,"PL BABYSEC ULTRA M 26/8",33,8,57324.36],
+[1504740,"PL BABYSEC ULTRA G 22/8",33,8,57324.36],
+[1504741,"PL BABYSEC ULTRA XG 18/10",25,10,71655.68],
+[1504742,"PL BABYSEC ULTRA XXG 17/10",25,10,71655.68],
+[1504900,"PL BABYSEC RECIEN NACIDO X20/10",null,10,23894.84],
+[1504931,"PL BABYSEC PREMIUM XXXG x 28/4",null,4,57984.99],
+[1504933,"PL BABYSEC ULTASOFT XXXG x 28/4",null,4,50847.66],
+[1505411,"PÑ ELITE FACIALES DISNEY x90/36",36,36,65506.63],
+[1505434,"PO FACIALES ELITE BOX SOFT TOUCH x90",36,36,63488.3],
+[1505496,"PO ELITE ST CON ALGODON X10 PACK 6",36,35,52545.69],
+[1505497,"PO ELITE ST CON ALGODON X10 PACK X10",36,21,52000.03],
+[1505498,"PÑ ELITE DISNEY POCKET X10 PACK X6/35",36,35,54761.05],
+[1505523,"PO CARILINA DOBLE HOJA X10 PACK X6/3",36,35,44316.77],
+[1505688,"RC Sussex clasico mas blanco 50px3/10",48,10,19784.95],
+[1505689,"RC SUSSEX ULTRA 60P x 3/10",40,10,24856.05],
+[1505698,"RC SUSSEX PREMIUM MAXI 100P",60,5,18810.27],
+[1505708,"RC SUSEEX CLS MEGARROLO ALTO 200X1",50,12,27361.26],
+[1505712,"RC SUSSEX CLASICO 50P X6/4",null,4,13576.05],
+[1505774,"SE SUSSEX HS 30x30 BLANCA x140/21",12,21,56511.97],
+[1505776,"SE SUSSEX HS 30X30 BLANCA X80",15,30,50773.86],
+[1506523,"Serv Elite Int Plus SH X250/72",null,72,63234.6],
+[1509232,"RC NOBLE 40P x3/10",48,10,15947.45],
+[1509243,"PH NOBLE HS 30M X4/12",60,12,21596.33],
+[1509244,"PH NOBLE HS 30X6",48,10,26082.47],
+[1509245,"PH NOBLE DH 30x4/10",48,10,28089.53],
+[1509749,"PD ladysoft clasicos 20x30",60,30,47205.4],
+[1509750,"PD LADYSOFT CLASICOS 56x10",84,10,41386.85],
+[1509755,"TF UD T/SECA LADYSOFT ULTRA PROTECT 8",60,40,58063.82],
+[1509756,"TF UD T/SECA LADYSOFT UL PRT 16u",60,20,56475.9],
+[1509757,"TF UD T/SECA LADYSOFT UL PTEC 24u",60,15,60502.23],
+[1509758,"TF UD T/SUAVE EXT ALGO 8X40",60,40,54001.88],
+[1509759,"TF UD T/SUAVE EXT ALG 16x20",60,20,51563.15],
+[1509760,"TD UF T/Suave Ladysoft EXT ALGODÓN 24x15",60,15,55018.2],
+[1509761,"TF LADYSOFT COMFORT EXT ALGODON 8x54",50,54,51959.99],
+[1509762,"TF NOCTUR EXT A 8x32",63,32,45387.27],
+[1509763,"TF Nocturna EXT ALGODON 16X16",54,16,43851.46],
+[1509764,"TF NORMAL T/SUAVE EXT ALGODON 8x54",54,54,55450.42],
+[1509765,"TF NORMALT/SUAVE EXT ALG 16x27",54,27,54303.52],
+[1509766,"TF T/SECA NORMAL MAS PROTECC 8x54",54,54,59838.63],
+[1509767,"TF UD TSUAVE ACTIVE 8X40",60,40,65673.74],
+[1509768,"TF NORMAL T/SUAVE PIEL SENSIBLE 8x54",54,54,63726.79],
+[1509769,"PD RESPIRABLES 100/12",50,12,76814.97],
+[1509916,"PD LADYSOFT UD RESPIRABLE S/ALAS X20/30",null,30,47622.19]];
+const CLOROX=[[16186,"Plomero Liq 12/1L",12,93873.98],
+[17927,"AYDN LAVDNA OR 15/1L",15,19261.69],
+[17981,"Aydn Dstcan 12/1l",12,74748.96],
+[17992,"ArcIris Liq 12/1l",12,68112.01],
+[17994,"ArcIris DoyPk 12/500ml",12,38739.07],
+[18026,"Aydn Dsnf PstWC 36/16g",36,112010.18],
+[18074,"Aydn Coc DoyPk 12/900ml",12,39752.86],
+[18081,"Mort Espnjlla Dor 20/12/13g",240,339114.6],
+[18082,"Mort Espnjlla Plat 20/12/13g",240,248945.4],
+[18098,"Mort Esp DobCara 4/24c",96,176574.82],
+[18147,"Mort Esp Cuad 8/12ct",96,104753.09],
+[19859,"Poett Frgnz SedPrm 12/250ml AR",12,59511.67],
+[19860,"Poett Frgnz FrsRoc 12/250ml AR",12,59511.67],
+[19861,"Poett Frgnz Suad Alg 12/250ml AR",12,59511.67],
+[19874,"Poett Frgnz SvdBeb 12/250ml AR",12,59511.67],
+[19877,"Poett Frgnz Suad Alg 12/450ml AR",12,82289.2],
+[19878,"Poett Frgnz SedPrm 12/450ml AR",12,82289.2],
+[19879,"Poett Frgnz SvdBeb 12/450ml AR",12,82289.2],
+[21291,"Poett Ntrl BlndFrt 12/400ml",12,72997.85],
+[21293,"Poett Ntrl BlndFlr 12/400ml",12,72997.85],
+[21295,"Poett Ntrl BlndHjVrd 12/400ml",12,72997.85],
+[21313,"Tren Bol 72/120ml",72,190609.85],
+[21766,"Mort PnMultus Amar 30/1ct",30,47681.86],
+[21768,"Mort PnMultus Amar 20/3ct",20,78048.63],
+[21770,"Mort PnMultus Clr3 20/3ct",20,90495.9],
+[22057,"Pluz Pino 12/900ml",12,22903.56],
+[22963,"Tren Oxi Trig EftEspma 12/500ml",12,59478.28],
+[24647,"Poett PastDesod 24/25g GP1",24,40205.88],
+[24648,"Poett PastDesod Lavda 12/25g GP2",12,20084.06],
+[24649,"Poett PastDesod 12/25g GP2",12,20084.06],
+[25353,"Poett Int Lavda Rep 12/9g",12,56156.1],
+[25354,"Poett Int Prmvra Rep 12/9g",12,56156.1],
+[25361,"Poett Int Lavda 12/9g GP6",12,88264.18],
+[25363,"Poett Int Lavda Rep 12/2x9g",12,99136.75],
+[25364,"Poett Int Prmvra/SoloTi 12/2x9g",12,99136.75],
+[27529,"Aydn RopClr UltrQuitMnch 12/450g",12,96287.64],
+[27536,"Aydn RopaBlnc UltrQuitMnch 12/450g",12,96287.64],
+[27816,"Poett Cnsta 12/27.5g",12,32410.09],
+[27818,"Poett Cnsta PastDesod Rep 24/27.5g",24,49228.61],
+[27880,"Poett Cnsta Pks 12/2x27.5g",12,44207.59],
+[32288,"Tren Oxi DoyPk 16/400ml",16,35612.72],
+[32412,"Poett Frgnz AlgrDia 12/250ml",12,59511.67],
+[33575,"Aydn Ropa ClrViv DoyPk 16/400ml",16,36743.54],
+[33576,"Aydn Ropa BlncSprms DoyPk 16/400ml",16,36743.54],
+[33577,"Aydn Ropa ClrViv DoyPk 12/650ml",12,45517.44],
+[33578,"Aydn Ropa BlncSprms DoyPk 12/650ml",12,45517.44],
+[33928,"Poett Frgnz SedPrm DoyPk 12/250ml",12,54944.41],
+[33929,"Poett Frgnz SuadAlg DoyPk 12/250ml",12,54944.41],
+[33930,"Poett Frgnz SvdBeb DoyPk 12/250ml",12,54944.41],
+[34203,"Ayudin toallitas fresco FlowPack 12/24ct",12,45019.26],
+[34320,"Poett Desinf. Frescura de Lavanda 900ml",12,23825],
+[34321,"Poett Desinf. Frescura de Lavanda 1.8ml",8,31183.15],
+[34322,"Poett Deinf. Frescura de Lavanda 4L",3,25761.02],
+[34324,"Poett Desinf. Flores de Primavera 900ml",12,23825],
+[34325,"Poett Desinf. Flores de Primavera 1.8ml",8,31183.15],
+[34326,"Poett Desinf. Flores de Primavera 4L",3,25761.02],
+[34327,"Poett Desinf. Solo para ti 900ml",12,23825],
+[34328,"Poett Desinf. Solo para ti 1.8ml",8,31183.15],
+[34329,"Poett Desinf. Solo para ti 4L",3,25761.02],
+[34333,"Poett Dsnf SuadBebe 3/4l",3,25761.02],
+[34334,"Poett Dsnf SuadBebe 12/900ml",12,23825],
+[34335,"Poett Dsnf SuadBebe 8/1.8l",8,31183.15],
+[34336,"Poett Dsnf SuadAlg 12/900ml",12,23825],
+[34337,"Poett Dsnf SuadAlg 8/1.8l",8,31183.15],
+[34338,"Poett Dsnf MscPrmvra 12/900ml",12,23825],
+[34339,"Poett Dsnf MscPrmvra 8/1.8l",8,31183.15],
+[34342,"Poett Dsnf AlgrDia 12/900ml",12,23825],
+[34343,"Poett Dsnf AlgrDia 8/1.8l",8,31183.15],
+[36001,"POETT FRSC TROP 12/900",12,23825],
+[36002,"POETT FRESC TROP 8/1.8",8,31183.15],
+[36003,"AYDN LAVDNA OR 25g/l 8/2l",8,21041.9],
+[36004,"AYDN LAVDNA OR 25 g/l 3/4l",3,16389.09],
+[36008,"SELTON REPEL EXTRA DUR 165ML",12,87244.87],
+[36009,"SELTON REPEL COTIDIAN 165ML",12,67123.06],
+[36012,"Selton espirales 48x 12u",48,98088.41],
+[36022,"Mortimer Bolsa Normal x15",20,43549.11],
+[36024,"Mortimer Bolsa Mediana x15",20,75010.32],
+[36026,"Mortimer Bolsa Consorcio x10",20,87163.56],
+[36027,"Mort ESPON LISITA 8/12CT",96,73233.07],
+[36029,"Mort Lana de acero 70gr 25/12",25,49535.89],
+[50001,"Trenet Power Pr QuitManchas 24/120gr",24,56688.98],
+[50002,"Trenet Power pr Quitmanch 12\u0026450gr",12,94070],
+[50004,"Trenet Power pr QuitManchas POTE 12/450gr",12,110006.42],
+[50017,"MORT GUANTES E.F NARANJ S",20,59492.07],
+[50018,"MORT GUANTES E.F NRNJ M",20,59492.07],
+[50019,"MORT GUANTES E.F NRNJA L",20,59492.07],
+[50020,"Mort GUANTES VRD 40G S",20,49495.05],
+[50021,"MORT GUANTES VERD 40 GR M",20,49495.05],
+[50022,"MORT GUANTES VRD 40GR L",20,49495.05],
+[50060,"Selton espirales violeta 48x12u",48,98088.41],
+[50085,"Poett Desinf. Huellitas Fresc 900ml",12,23825],
+[50087,"Poett Frgnz Huellitas 12/250ml AR",12,59511.67],
+[50088,"Poett Frgnz Huellitas DoyPk12/250ml",12,59511.67],
+[50090,"Poett Aer Huellitas 6/360ml",6,21244.94],
+[60222,"Aydn Lavda TriPod 15/1l GP2",15,24774.75],
+[60223,"Aydn Lavda TriPod 8/2l GP2",8,26325.73],
+[60225,"Aydn Lavda TriPod 3/4l GP2",3,19866.99],
+[60226,"Aydn PurGlac TriPod 15/1l GP2",15,24774.75],
+[60227,"Aydn PurGlac TriPod 8/2l GP2",8,26325.73],
+[60228,"Aydn PurGlac TriPod 3/4l GP2",3,19866.99],
+[60231,"Aydn A-Sp Trad 15/1l GP2",15,29450.19],
+[60232,"Aydn A-Sp Trad 8/2l GP2",8,31259.04],
+[60233,"Aydn Lavdna Gel Or 15/700ml GP2",15,52793.09],
+[60234,"Aydn Lavdna Gel Ctra 15/700ml GP2",15,52793.09],
+[60237,"Aydn Lavdna Gel Flr 15/700ml GP2",15,52793.09],
+[60239,"Aydn Lavdna Gel MntFrs 15/700ml GP2",15,52793.09],
+[60240,"Aydn Lavdna Gel Lavda EXPRT 15/700ml GP2",15,52793.09],
+[60245,"Aydn Lavdna Gel Or 6/1500ml GP2",6,44088.38],
+[60246,"Aydn Lavdna Gel PurCtra 6/1500ml GP2",6,44088.38],
+[60386,"Poett EsptPly 12/900ml",12,23825],
+[60387,"Poett EsptPly 8/1800ml",8,31183.15],
+[60400,"Ayudin Ropa Colores Vivos 6/1500ml",6,54825.63],
+[60402,"Ayudin Ropa Colores Vivos 15/700ml",15,69232.09],
+[60408,"Ayudin Ropa Blancos Supremos 15/700ml",15,69232.09],
+[60485,"Aydn Toallts Dsnf DP Frse 12/35ct",12,61195.99],
+[60807,"Aydn Dsnf Toallts Frsc 12/65ct",12,116823.56],
+[60885,"Poett Aer FlrLavda ExtFrag 6/360ml",6,21244.94],
+[60886,"Poett Aer FlrPrm ExtFrag 6/360ml",6,21244.94],
+[60887,"Poett Aer SvdBb ExtFrag 6/360ml",6,21244.94],
+[60888,"Poett Aer SvdAlg ExtFrag 6/360ml",6,21244.94],
+[61032,"Poett Aer SoloTi ExtFrag 6/360ml",6,21244.94],
+[61033,"Poett Aer DsprtarEnrg ExtFrag 6/360ml",6,21244.94],
+[61034,"Poett Aer MscPrmvra ExtFrag 6/360ml",6,21244.94],
+[61035,"Poett Aer AlgrDia ExtFrag 6/360ml",6,21244.94],
+[61036,"Poett Aer EsptPly ExtFrag 6/360ml",6,21244.94],
+[61046,"Aydn RopQuitMnch BlncInt 15/1l",15,32915.02],
+[61047,"Aydn RopQuitMnch BlncInt 8/2l",8,34945.77],
+[61147,"Aydn Aer Dsnf Exprt Or 6/332ml",6,21735.71],
+[61148,"Aydn Aer Dsnf Exprt FrscaMat 6/332ml",6,21735.71],
+[61149,"Aydn Aer Dsnf Exprt Bebe 6/332ml",6,21735.71],
+[61150,"Aydn Aer Dsnf Exprt Or 6/422ml",6,29720.26],
+[61301,"Ayudin Expert Dsnf. Multisup Doypack 16/450m",16,37147.97],
+[61302,"Aydn Exp Dsnf.  Multisup Trigger 12/500ml",12,61875.53],
+[61373,"Aydn LimpDsnf Lavda 12/900ml",12,27238.07],
+[61374,"Aydn LimpDsnf Mrna 12/900ml",12,27238.07],
+[61375,"Aydn LimpDsnf Flr 12/900ml",12,27238.07],
+[61575,"Aydn A.hongos Removedor Activo Doy Pack 16/450ml",16,33800.62],
+[61576,"Aydn Bn Limp  Act Or DoyPk 16/450ml",16,33800.62],
+[61577,"Aydn Coc  Pod Act Or  DoyPk 16/450ml",16,28741.86],
+[61578,"Aydn bn limp act or Doypl 12/900ml",12,41074.18],
+[61619,"Aydn A.hongos Removedor Activo Gat 12/500 ml",12,48586.82],
+[61620,"Aydn Bn Limp  Act Or Gat 12/500 ml",12,48605.7],
+[61621,"Aydn Coc  Pod Act Or  Gat 12/500ml",12,41697.08],
+[61674,"Aydn Toallts Flwpk Frsc 12/36ct",12,61290.37],
+[61685,"Aydn Dsnf Toallts Frsc DoyPk 12/65ct",12,110500.1],
+[61730,"Sltn MataMosq Aer AccEfct 6/360ml BA",6,32422.58],
+[61731,"Sltn MataCuca Aer AccProl 6/360ml BA",6,28677.58],
+[61814,"Sltn MataMosq Aer s/OlrQmc 6/360ml BA",6,31962.15],
+[61816,"Sltn MataMosq Aer AccInst 6/360ml BA",6,25850.68]];
+const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
+const money = v => v==null ? '' : fmt.format(v);
+const esc = s => s.replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function hl(text, q){
+  const t = esc(text); if(!q) return t;
+  const i = norm(text).indexOf(q); if(i<0) return t;
+  return esc(text.slice(0,i)) + '<mark>' + esc(text.slice(i,i+q.length)) + '</mark>' + esc(text.slice(i+q.length));
+}
+function render(){
+  const q = norm(document.getElementById('q').value.trim());
+  const hit = r => !q || String(r[0]).includes(q) || norm(r[1]).includes(q);
+  const s = SOFTYS.filter(hit), c = CLOROX.filter(hit);
+  document.getElementById('tb-s').innerHTML = s.length ? s.map(r =>
+    `<tr><td class="cod">${hl(String(r[0]),q)}</td><td>${hl(r[1],q)}</td><td class="c">${r[2]??''}</td><td class="c">${r[3]??''}</td><td class="n">${money(r[4])}</td><td class="n">${r[3]?money(r[4]/r[3]):''}</td></tr>`).join('')
+    : '<tr><td colspan="6" class="empty">Ningún producto Softys coincide con la búsqueda.</td></tr>';
+  document.getElementById('tb-c').innerHTML = c.length ? c.map(r =>
+    `<tr><td class="cod">${hl(String(r[0]),q)}</td><td>${hl(r[1],q)}</td><td class="c">${r[2]??''}</td><td class="n">${money(r[3])}</td><td class="n">${r[2]?money(r[3]/r[2]):''}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty">Ningún producto Clorox coincide con la búsqueda.</td></tr>';
+  document.getElementById('count').textContent = q
+    ? `${s.length} de Softys y ${c.length} de Clorox coinciden`
+    : `${SOFTYS.length} productos Softys · ${CLOROX.length} productos Clorox`;
+}
+document.getElementById('q').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
