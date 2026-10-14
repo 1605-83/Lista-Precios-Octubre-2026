@@ -59,6 +59,17 @@ mark{background:#fff1a8;color:inherit;padding:0}
 .precio span{font-size:.75rem;color:var(--muted)}
 .precio b{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
 .precio.bulto b{font-size:1.05rem;color:var(--marca)}
+/* dinamicas del mes: recuadro, cartel y precio nuevo en rojo */
+:root{--rojo:#d32f2f}
+.prod.oferta{border:2.5px solid var(--rojo)}
+.off{align-self:flex-start;background:var(--rojo);color:#fff;font-weight:800;font-size:.8rem;letter-spacing:.02em;padding:3px 9px;border-radius:6px}
+.precio .antes{font-size:.75rem;color:var(--muted)}
+.precio .antes s{font-family:var(--f-num)}
+.precio .ahora{font-size:.75rem;color:var(--rojo);font-weight:700}
+.precio .ahora b,.precio.bulto .ahora b{color:var(--rojo);font-weight:700}
+.precio.bulto .ahora b{font-size:1.1rem}
+nav button.btn-ofertas{color:var(--rojo);border-color:var(--rojo)}
+nav button.btn-ofertas.activa{background:var(--rojo);color:#fff}
 .estado{color:var(--muted);margin-top:24px}
 footer{margin-top:32px;color:var(--muted);font-size:.8rem}
 @media print{
@@ -103,10 +114,14 @@ const FOTOS_V = '2';   // cambiar cuando se reemplazan las fotos, para que el na
 const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 // Segmentos tildados: ninguno = se ven todos; uno o varios = solo esos (se combinan con el buscador)
 const elegidos = new Set();
+let soloOfertas = false;   // boton "Ofertas del mes": muestra solo los productos con dinamica
 function tildar(id){
-  if (id === 'todos') elegidos.clear(); else if (elegidos.has(id)) elegidos.delete(id); else elegidos.add(id);
+  if (id === 'todos') { elegidos.clear(); soloOfertas = false; }
+  else if (id === 'ofertas') soloOfertas = !soloOfertas;
+  else if (elegidos.has(id)) elegidos.delete(id); else elegidos.add(id);
   document.querySelectorAll('nav button').forEach(b => {
-    const on = b.dataset.seg === 'todos' ? elegidos.size === 0 : elegidos.has(b.dataset.seg);
+    const s = b.dataset.seg;
+    const on = s === 'todos' ? (elegidos.size === 0 && !soloOfertas) : s === 'ofertas' ? soloOfertas : elegidos.has(s);
     b.classList.toggle('activa', on); b.setAttribute('aria-pressed', on);
   });
   buscar();
@@ -120,35 +135,48 @@ function buscar(){
   document.querySelectorAll('section').forEach(sec => {
     const tildado = elegidos.size === 0 || elegidos.has(sec.id);
     let vis = 0;
-    sec.querySelectorAll('.prod').forEach(pr => { const ok = tildado && palabras.every(w => pr.dataset.buscar.includes(w)); pr.hidden = !ok; if (ok) vis++; });
+    sec.querySelectorAll('.prod').forEach(pr => { const ok = tildado && (!soloOfertas || pr.dataset.oferta === '1') && palabras.every(w => pr.dataset.buscar.includes(w)); pr.hidden = !ok; if (ok) vis++; });
     sec.querySelectorAll('.sub').forEach(s => { s.hidden = !s.querySelector('.prod:not([hidden])'); });
     sec.hidden = vis === 0; n += vis;
   });
   const c = document.getElementById('cuenta');
-  const filtra = q || elegidos.size;
+  const filtra = q || elegidos.size || soloOfertas;
   c.hidden = !filtra; c.textContent = n ? `${n} ${n === 1 ? 'producto' : 'productos'}` : 'Ningún producto coincide con la búsqueda.';
 }
 function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
 
-Promise.all(['datos.json', 'segmentos-clorox.json'].map(u => fetch(u, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }))).then(([d, SEG]) => {
+// Dinamicas del mes (dinamicas-clorox.json): {codigo: [% de descuento, condicion]}. Se dejan de mostrar despues de "hasta".
+let DIN = {};
+const dinamicas = fetch('dinamicas-clorox.json', {cache:'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null);
+Promise.all(['datos.json', 'segmentos-clorox.json'].map(u => fetch(u, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })).concat([dinamicas])).then(([d, SEG, dn]) => {
+  const hoy = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);   // fecha argentina
+  if (dn && (!dn.hasta || hoy <= dn.hasta)) DIN = dn.items || {};
   const l = d.listas.find(x => x.proveedor === '247');
   document.getElementById('vig').textContent = 'vigencia ' + fecha(l.vigencia);
   const grupos = ORDEN.map(nombre => ({nombre, prods: []}));
   for (const p of l.productos) { const i = ORDEN.indexOf(SEG[String(p[0])]); grupos[i < 0 ? ORDEN.length - 1 : i].prods.push(p); }
   const usados = grupos.filter(g => g.prods.length);
   document.getElementById('nav').innerHTML = `<button type="button" data-seg="todos" class="activa" aria-pressed="true">Todos</button>` +
+    (Object.keys(DIN).length ? `<button type="button" data-seg="ofertas" class="btn-ofertas" aria-pressed="false">Ofertas del mes</button>` : '') +
     usados.map((g, i) => `<button type="button" data-seg="s${i}" aria-pressed="false">${esc(g.nombre)}</button>`).join('');
   document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => tildar(b.dataset.seg)));
+  // Precio con dinamica: "Antes $X  Ahora $Y" en rojo
+  const precio = (clase, nombre, valor, off) => valor == null ? '' : off
+    ? `<div class="precio ${clase}"><span>${nombre}</span><span class="antes">Antes <s>${fmt.format(valor)}</s></span><span class="ahora">Ahora <b>${fmt.format(valor * (1 - off / 100))}</b></span></div>`
+    : `<div class="precio ${clase}"><span>${nombre}</span><b>${fmt.format(valor)}</b></div>`;
   const tarjeta = p => {
     const unidad = p[3] ? p[4] / p[3] : p[6];
-    return `<article class="prod" data-buscar="${esc(norm(p[0] + ' ' + p[1]))}">
+    const din = DIN[String(p[0])], off = din ? din[0] : 0;
+    const cond = din ? (din[1] === 'caja' ? 'por caja' : 'llevando ' + din[1]) : '';
+    return `<article class="prod${off ? ' oferta' : ''}" data-oferta="${off ? 1 : 0}" data-buscar="${esc(norm(p[0] + ' ' + p[1] + (off ? ' oferta descuento' : '')))}">
       <div class="foto"><img src="img/clorox/${esc(p[0])}.jpg?v=${FOTOS_V}" alt="${esc(limpiar(p[1]))}" loading="lazy" onerror="sinFoto(this,'${esc(marca(p[1]))}')"></div>
       <div class="datos">
+        ${off ? `<div class="off">-${off}% OFF ${esc(cond)}</div>` : ''}
         <div class="desc">${esc(limpiar(p[1]))}</div>
         <div class="cod">Cód. ${esc(p[0])}${p[3] ? ' · bulto x' + p[3] : ''}</div>
         <div class="precios">
-          ${p[4] != null ? `<div class="precio bulto"><span>Bulto</span><b>${fmt.format(p[4])}</b></div>` : ''}
-          ${unidad != null ? `<div class="precio"><span>Unidad</span><b>${fmt.format(unidad)}</b></div>` : ''}
+          ${precio('bulto', 'Bulto', p[4], off)}
+          ${precio('', 'Unidad', unidad, off)}
         </div>
       </div>
     </article>`; };
