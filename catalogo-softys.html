@@ -146,7 +146,7 @@ function marcarSegmentos(){
     if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) actual = secs[secs.length - 1];
     if (actual) activar(actual.id);
   };
-  window.addEventListener('scroll', () => requestAnimationFrame(revisar), {passive: true});
+  window.addEventListener('scroll', revisar, {passive: true});
   revisar();
 }
 function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
