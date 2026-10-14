@@ -51,6 +51,31 @@ $bultoManual = @{
 }
 
 
+# Proveedores que no van en las listas (pedido de Bruno, 14/10/2026)
+$excluirProveedores = @(
+  '110',  # AJINOMOTO
+  '95',   # ALFA PAMPA
+  '448',  # BETTER FOOD
+  '517',  # BODEGAS SAN HUBERTO
+  '32',   # CASAMEN SA (MENDIA)
+  '27',   # DANICA DORADA
+  '41',   # DESDE EL CAMPO (DEC)
+  '48',   # DISTRIBUIDORA ALUNCO BS AS (DABA)
+  '35',   # DOINA
+  '53',   # DON YEYO
+  '64',   # EGRAMAR
+  '40',   # ENTRENUTS
+  '514',  # FECOVITA
+  '4',    # INALPA
+  '58',   # INDUSTRIAS QUIMICAS Y MINERAS TIMBO
+  '77',   # JUAN PABLO CANO
+  '78',   # LACASA
+  '13',   # LAGO PUELO
+  '1',    # MILKAUT
+  '82',   # MORIXE
+  '49'    # PROTEINAS ARGENTINAS
+)
+
 # Colores del encabezado de cada lista (Softys azul oscuro y Clorox verde, como en la lista original; el resto en orden)
 $COLORES = @('7B1FA2','C62828','EF6C00','00838F','5D4037','AD1457','283593','558B2F','6D4C41','00695C','4527A0','BF360C',
              '37474F','9E9D24','0277BD','880E4F','2E7D32','D84315','512DA8','00796B','8D6E63','1565C0','6A1B9A','E65100','455A64')
@@ -188,7 +213,7 @@ function Vig([string]$iso) {
 }
 
 $listas = @()
-$otros = @($provs.Keys | Where-Object { $_ -ne $PROV.softys -and $_ -ne $PROV.clorox } | Sort-Object { Corto $provs[$_].nombre })
+$otros = @($provs.Keys | Where-Object { $_ -ne $PROV.softys -and $_ -ne $PROV.clorox -and $excluirProveedores -notcontains $_ } | Sort-Object { Corto $provs[$_].nombre })
 $orden = @(@($PROV.softys, $PROV.clorox) | Where-Object { $provs.ContainsKey($_) }) + $otros
 $k = 0
 foreach ($pv in $orden) {
