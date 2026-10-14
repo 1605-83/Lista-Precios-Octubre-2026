@@ -5,89 +5,95 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Catálogo Softys LP - ELEBES</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: catalogo compacto por segmento; grilla de tarjetas (foto, descripcion, precios) que en A4 entra de a 16 por hoja */
+/* Layout: pensado para el celular. Un producto por renglon (foto chica a la izquierda, datos y precios a la derecha);
+   en pantallas anchas, 2 o 3 columnas. Cada segmento arranca con una linea divisoria y su titulo. */
 :root{
-  --bg:#ffffff; --fg:#14181f; --muted:#5b6472; --line:#dde2ea; --soft:#f2f5f9;
+  --bg:#ffffff; --fg:#14181f; --muted:#5b6472; --line:#dde2ea; --soft:#f5f7fa;
   --marca:#1f3d60; --on-marca:#ffffff;
   --f-ui:"Archivo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:13px;padding:0 16px 40px}
-.wrap{max-width:1040px;margin:0 auto}
-header{padding-block:22px 6px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;border-bottom:3px solid var(--marca)}
-h1{margin:0;font-size:1.6rem;font-weight:800;letter-spacing:.01em;color:var(--marca)}
-.sub{margin:2px 0 0;color:var(--muted)}
-.vig{font-size:.85rem;color:var(--muted)}
-nav{display:flex;flex-wrap:wrap;gap:6px;padding-block:12px}
-nav a{font-size:.8rem;font-weight:600;text-decoration:none;color:var(--marca);border:1px solid var(--marca);border-radius:999px;padding:4px 10px}
+html{scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.35;padding:0 16px 48px}
+.wrap{max-width:1100px;margin:0 auto}
+header{padding-block:20px 12px}
+h1{margin:0;font-size:1.5rem;font-weight:800;color:var(--marca)}
+.sub{margin:4px 0 0;color:var(--muted);font-size:.9rem}
+/* segmentos: barra fija arriba, se desliza de costado en el celular */
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--bg);margin:0 -16px;padding:10px 16px;border-bottom:1px solid var(--line);
+    display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav a{flex:0 0 auto;font-size:.85rem;font-weight:600;text-decoration:none;color:var(--marca);border:1.5px solid var(--marca);border-radius:999px;padding:6px 12px;white-space:nowrap}
 nav a:focus-visible{outline:2px solid var(--marca);outline-offset:2px}
-section{margin-top:18px}
-h2{margin:0 0 10px;padding:7px 12px;background:var(--marca);color:var(--on-marca);font-size:.95rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:4px;display:flex;justify-content:space-between;gap:12px}
-h2 small{font-weight:500;opacity:.85;text-transform:none;letter-spacing:0}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
-.card{border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;break-inside:avoid;page-break-inside:avoid;min-width:0}
-.foto{aspect-ratio:4/3;max-width:100%;background:var(--soft);display:grid;place-items:center;overflow:hidden}
+section{margin-top:36px;padding-top:18px;border-top:3px solid var(--marca)}
+section:first-of-type{margin-top:20px}
+h2{margin:0 0 14px;font-size:1.15rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--marca);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h2 small{font-size:.8rem;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
+.lista{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:700px){.lista{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1050px){.lista{grid-template-columns:repeat(3,1fr)}}
+.prod{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;min-width:0;break-inside:avoid;page-break-inside:avoid}
+.foto{width:96px;height:96px;max-width:100%;background:var(--soft);border-radius:8px;display:grid;place-items:center;overflow:hidden}
 .foto img{width:100%;height:100%;object-fit:contain;background:#fff}
-.foto .sin{font-weight:800;font-size:1.05rem;color:var(--marca);opacity:.35;letter-spacing:.06em;text-align:center;padding:8px}
-.info{padding:8px 10px 10px;display:flex;flex-direction:column;gap:4px;flex:1}
-.desc{font-weight:600;line-height:1.25;min-height:2.5em}
-.cod{font-family:var(--f-num);font-size:.72rem;color:var(--muted)}
-.precios{margin-top:auto;display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:.78rem;border-top:1px dashed var(--line);padding-top:6px}
-.precios span{color:var(--muted)}
-.precios b{font-family:var(--f-num);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-.precios b.big{font-size:.95rem;color:var(--marca)}
+.foto .sin{font-weight:800;font-size:.7rem;color:var(--marca);opacity:.45;letter-spacing:.05em;text-align:center;padding:4px}
+.datos{min-width:0;display:flex;flex-direction:column;gap:3px}
+.desc{font-weight:700;font-size:.95rem;overflow-wrap:anywhere}
+.cod{font-family:var(--f-num);font-size:.75rem;color:var(--muted)}
+.precios{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px;align-items:baseline}
+.precio{display:flex;align-items:baseline;gap:6px}
+.precio span{font-size:.75rem;color:var(--muted)}
+.precio b{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.precio.bulto b{font-size:1.05rem;color:var(--marca)}
 .estado{color:var(--muted);margin-top:24px}
-footer{margin-top:28px;color:var(--muted);font-size:.75rem}
+footer{margin-top:32px;color:var(--muted);font-size:.8rem}
 @media print{
   @page{size:A4;margin:10mm}
-  body{padding:0;font-size:10.5px}
+  body{padding:0;font-size:11px}
   nav{display:none}
-  .wrap{max-width:none}
-  .grid{grid-template-columns:repeat(4,1fr);gap:6px}
-  section{break-before:auto}
-  h2{break-after:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .foto{aspect-ratio:1/1}
+  .lista{grid-template-columns:repeat(2,1fr);gap:6px}
+  .prod{grid-template-columns:70px 1fr;padding:6px}
+  .foto{width:70px;height:70px}
+  section{break-inside:auto;border-top-color:var(--marca);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h2{break-after:avoid}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div>
-      <h1>Catálogo Softys</h1>
-      <p class="sub">Lago Puelo · Elebes · Lista 1 · precios con IVA incluido</p>
-    </div>
-    <span class="vig" id="vig"></span>
+    <h1>Catálogo Softys</h1>
+    <p class="sub">Lago Puelo · Elebes · Lista 1 con IVA · <span id="vig"></span></p>
   </header>
   <nav id="nav" aria-label="Segmentos"></nav>
   <div id="cat"><p class="estado">Cargando el catálogo…</p></div>
-  <footer>Precios en pesos argentinos con IVA, se actualizan solos cuando cambian en Gescom. Fotos ilustrativas.</footer>
+  <footer>Precios en pesos argentinos con IVA. Se actualizan solos cuando cambian en Gescom. Fotos ilustrativas.</footer>
 </div>
 <script>
 // Segmentos en el orden del catalogo. Cada producto va al primero cuya regla coincide con la descripcion.
+// (Despues de la Ñ no se usa \b: en JavaScript la Ñ no cuenta como letra para \b)
 const SEGMENTOS = [
-  ['Pañales',                 d => /^(PL|PA[ÑN]AL|BABYSEC|PLBABYSEC)\b/i.test(d) && !/COTIDIAN/i.test(d)],
-  ['Toallitas húmedas',       d => /^(TH\b|TOALLAS HUM)/i.test(d)],
-  ['Cuidado femenino',        d => /^(TF|TD|PD)\b/i.test(d) || /COTIDIAN|LADYSOFT/i.test(d)],
-  ['Papel higiénico',         d => /^PH\b/i.test(d)],
-  ['Rollos de cocina',        d => /^RC\b/i.test(d)],
-  ['Servilletas',             d => /^(SE|SERV)\b/i.test(d)],
-  ['Pañuelos y faciales',     d => /^(PO|P[ÑN])(?=\s)/i.test(d)],   // \b no sirve despues de la Ñ
-  ['Otros',                   d => true],
+  ['Papel higiénico',     d => /^PH\s/i.test(d)],
+  ['Rollos de cocina',    d => /^RC\s/i.test(d)],
+  ['Servilletas',         d => /^(SE|SERV)\s/i.test(d)],
+  ['Pañuelos y faciales', d => /^(PO|P[ÑN])(?=\s)/i.test(d)],
+  ['Pañales',             d => /^(PL|PA[ÑN]AL|BABYSEC|PLBABYSEC)(?=\s)/i.test(d) && !/COTIDIAN/i.test(d)],
+  ['Toallitas húmedas',   d => /^(TH\s|TOALLAS HUM)/i.test(d)],
+  ['Toallas femeninas',   d => /^(TF|TD|PD)\s/i.test(d) || /COTIDIAN|LADYSOFT/i.test(d)],
+  ['Otros',               d => true],
 ];
 const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fecha = iso => iso ? iso.split('-').reverse().join('/') : '';
-// Descripcion mas legible: sin el prefijo de rubro (PL, TH, PH...) y con mayusculas de titulo
 const limpiar = d => d.replace(/^(PL|TH|PH|RC|SE|PO|PÑ|TF|TD|PD)\s+/i,'').replace(/\s+/g,' ').trim();
 const marca = d => (d.match(/BABYSEC|HIGIENOL|ELITE|SUSSEX|NOBLE|LADYSOFT|COTIDIAN|CARILINA/i) || ['SOFTYS'])[0].toUpperCase();
+function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
 
 fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
   const l = d.listas.find(x => x.proveedor === '150');
-  document.getElementById('vig').textContent = 'Vigencia ' + fecha(l.vigencia);
+  document.getElementById('vig').textContent = 'vigencia ' + fecha(l.vigencia);
   const grupos = SEGMENTOS.map(([nombre]) => ({nombre, prods: []}));
   for (const p of l.productos) grupos[SEGMENTOS.findIndex(([, f]) => f(p[1]))].prods.push(p);
   const usados = grupos.filter(g => g.prods.length);
@@ -95,17 +101,16 @@ fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.
   document.getElementById('cat').innerHTML = usados.map((g, i) => `
     <section id="s${i}">
       <h2>${esc(g.nombre)} <small>${g.prods.length} productos</small></h2>
-      <div class="grid">${g.prods.map(p => {
+      <div class="lista">${g.prods.map(p => {
         const unidad = p[3] ? p[4] / p[3] : p[6];
-        return `<article class="card">
-          <div class="foto"><img src="img/softys/${esc(p[0])}.jpg" alt="${esc(limpiar(p[1]))}" loading="lazy"
-               onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'sin',textContent:'${esc(marca(p[1]))}'}))"></div>
-          <div class="info">
+        return `<article class="prod">
+          <div class="foto"><img src="img/softys/${esc(p[0])}.jpg" alt="${esc(limpiar(p[1]))}" loading="lazy" onerror="sinFoto(this,'${esc(marca(p[1]))}')"></div>
+          <div class="datos">
             <div class="desc">${esc(limpiar(p[1]))}</div>
             <div class="cod">Cód. ${esc(p[0])}${p[3] ? ' · bulto x' + p[3] : ''}</div>
             <div class="precios">
-              ${p[4] != null ? `<span>Bulto</span><b class="big">${fmt.format(p[4])}</b>` : ''}
-              ${unidad != null ? `<span>Unidad</span><b>${fmt.format(unidad)}</b>` : ''}
+              ${p[4] != null ? `<div class="precio bulto"><span>Bulto</span><b>${fmt.format(p[4])}</b></div>` : ''}
+              ${unidad != null ? `<div class="precio"><span>Unidad</span><b>${fmt.format(unidad)}</b></div>` : ''}
             </div>
           </div>
         </article>`; }).join('')}</div>
