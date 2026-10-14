@@ -103,10 +103,11 @@ const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(
 // Buscador: oculta los productos que no coinciden y los segmentos que quedan vacios
 function buscar(){
   const q = norm(document.getElementById('q').value.trim());
+  const palabras = q.split(/\s+/).filter(Boolean);   // tienen que estar todas, en cualquier orden
   let n = 0;
   document.querySelectorAll('section').forEach(sec => {
     let vis = 0;
-    sec.querySelectorAll('.prod').forEach(pr => { const ok = !q || pr.dataset.buscar.includes(q); pr.hidden = !ok; if (ok) vis++; });
+    sec.querySelectorAll('.prod').forEach(pr => { const ok = palabras.every(w => pr.dataset.buscar.includes(w)); pr.hidden = !ok; if (ok) vis++; });
     sec.hidden = vis === 0; n += vis;
   });
   const c = document.getElementById('cuenta');
