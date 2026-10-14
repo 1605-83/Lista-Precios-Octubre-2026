@@ -67,7 +67,11 @@ mark{background:#fff1a8;color:inherit;padding:0}
 .precio .antes s{font-family:var(--f-num)}
 .precio .ahora{font-size:.75rem;color:var(--rojo);font-weight:700}
 .precio .ahora b,.precio.bulto .ahora b{color:var(--rojo);font-weight:700}
-.precio.bulto .ahora b{font-size:1.1rem}
+.precio.bulto .ahora b{font-size:1.05rem}
+/* en las ofertas cada precio va en su renglon y "Antes"/"Ahora" bajan de renglon si no entran */
+.prod.oferta .precios{flex-direction:column;align-items:flex-start;gap:6px}
+.prod.oferta .precio{flex-wrap:wrap;gap:0 8px}
+.prod.oferta .precio > span:first-child{flex-basis:100%;font-weight:700;color:var(--fg)}
 nav button.btn-ofertas{color:var(--rojo);border-color:var(--rojo)}
 nav button.btn-ofertas.activa{background:var(--rojo);color:#fff}
 .estado{color:var(--muted);margin-top:24px}
