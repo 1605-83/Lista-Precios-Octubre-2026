@@ -29,9 +29,10 @@ h1{margin:0;font-size:1.5rem;font-weight:800;color:var(--marca)}
 .cuenta{font-size:.8rem;color:var(--muted);margin:6px 0 0}
 nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 0}
 nav::-webkit-scrollbar{display:none}
-nav a{flex:0 0 auto;font-size:.85rem;font-weight:600;text-decoration:none;color:var(--marca);border:1.5px solid var(--marca);border-radius:999px;padding:6px 12px;white-space:nowrap}
-nav a.activa{background:var(--marca);color:var(--on-marca)}
-nav a:focus-visible{outline:2px solid var(--marca);outline-offset:2px}
+nav button{flex:0 0 auto;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--marca);background:var(--bg);border:1.5px solid var(--marca);border-radius:999px;padding:6px 12px;white-space:nowrap}
+nav button.activa{background:var(--marca);color:var(--on-marca)}
+nav button:not([data-seg="todos"]).activa::before{content:"✓ "}
+nav button:focus-visible{outline:2px solid var(--marca);outline-offset:2px}
 section{margin-top:36px;padding-top:18px;border-top:3px solid var(--marca)}
 section:first-of-type{margin-top:20px}
 h2{margin:0 0 14px;font-size:1.15rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--marca);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
@@ -113,41 +114,32 @@ const limpiar = d => d.replace(/^(PL|TH|PH|RC|SE|PO|PÑ|TF|TD|PD)\s+/i,'').repla
 const marca = d => (d.match(/BABYSEC|HIGIENOL|ELITE|SUSSEX|NOBLE|LADYSOFT|COTIDIAN|CARILINA/i) || ['SOFTYS'])[0].toUpperCase();
 const FOTOS_V = '3';   // cambiar cuando se reemplazan las fotos, para que el navegador no muestre las viejas
 const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
-// Buscador: oculta los productos que no coinciden y los segmentos que quedan vacios
+// Segmentos tildados: ninguno = se ven todos; uno o varios = solo esos (se combinan con el buscador)
+const elegidos = new Set();
+function tildar(id){
+  if (id === 'todos') elegidos.clear(); else if (elegidos.has(id)) elegidos.delete(id); else elegidos.add(id);
+  document.querySelectorAll('nav button').forEach(b => {
+    const on = b.dataset.seg === 'todos' ? elegidos.size === 0 : elegidos.has(b.dataset.seg);
+    b.classList.toggle('activa', on); b.setAttribute('aria-pressed', on);
+  });
+  buscar();
+  window.scrollTo({top: 0});
+}
+// Buscador: oculta los productos que no coinciden y los segmentos que quedan vacios o no estan tildados
 function buscar(){
   const q = norm(document.getElementById('q').value.trim());
   const palabras = q.split(/\s+/).filter(Boolean);   // tienen que estar todas, en cualquier orden
   let n = 0;
   document.querySelectorAll('section').forEach(sec => {
+    const tildado = elegidos.size === 0 || elegidos.has(sec.id);
     let vis = 0;
-    sec.querySelectorAll('.prod').forEach(pr => { const ok = palabras.every(w => pr.dataset.buscar.includes(w)); pr.hidden = !ok; if (ok) vis++; });
+    sec.querySelectorAll('.prod').forEach(pr => { const ok = tildado && palabras.every(w => pr.dataset.buscar.includes(w)); pr.hidden = !ok; if (ok) vis++; });
     sec.querySelectorAll('.sub').forEach(s => { s.hidden = !s.querySelector('.prod:not([hidden])'); });
     sec.hidden = vis === 0; n += vis;
   });
   const c = document.getElementById('cuenta');
-  c.hidden = !q; c.textContent = n ? `${n} ${n === 1 ? 'producto coincide' : 'productos coinciden'}` : 'Ningún producto coincide con la búsqueda.';
-}
-// Marca en color el segmento elegido y, al bajar por la pagina, el segmento que se esta viendo
-function marcarSegmentos(){
-  const links = [...document.querySelectorAll('nav a')];
-  const activar = id => links.forEach(a => {
-    const on = a.getAttribute('href') === '#' + id; a.classList.toggle('activa', on);
-    if (on) a.scrollIntoView({block: 'nearest', inline: 'center', behavior: 'smooth'});
-  });
-  let porClic = 0;
-  links.forEach(a => a.addEventListener('click', () => { porClic = Date.now(); activar(a.getAttribute('href').slice(1)); }));
-  const alto = () => document.querySelector('.arriba').getBoundingClientRect().bottom + 8;
-  const revisar = () => {
-    if (Date.now() - porClic < 900) return;   // mientras baja por un clic, queda marcado el elegido
-    const secs = [...document.querySelectorAll('section:not([hidden])')];
-    let actual = secs[0];
-    for (const s of secs) if (s.getBoundingClientRect().top <= alto() + 4) actual = s;
-    // al llegar al final de la pagina, el ultimo segmento (puede ser corto y no llegar arriba)
-    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) actual = secs[secs.length - 1];
-    if (actual) activar(actual.id);
-  };
-  window.addEventListener('scroll', revisar, {passive: true});
-  revisar();
+  const filtra = q || elegidos.size;
+  c.hidden = !filtra; c.textContent = n ? `${n} ${n === 1 ? 'producto' : 'productos'}` : 'Ningún producto coincide con la búsqueda.';
 }
 function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
 
@@ -157,7 +149,9 @@ fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.
   const grupos = SEGMENTOS.map(([nombre]) => ({nombre, prods: []}));
   for (const p of l.productos) grupos[SEGMENTOS.findIndex(([, f]) => f(p[1]))].prods.push(p);
   const usados = grupos.filter(g => g.prods.length);
-  document.getElementById('nav').innerHTML = usados.map((g, i) => `<a href="#s${i}">${esc(g.nombre)}</a>`).join('');
+  document.getElementById('nav').innerHTML = `<button type="button" data-seg="todos" class="activa" aria-pressed="true">Todos</button>` +
+    usados.map((g, i) => `<button type="button" data-seg="s${i}" aria-pressed="false">${esc(g.nombre)}</button>`).join('');
+  document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => tildar(b.dataset.seg)));
   const tarjeta = p => {
     const unidad = p[3] ? p[4] / p[3] : p[6];
     return `<article class="prod" data-buscar="${esc(norm(p[0] + ' ' + p[1]))}">
@@ -189,7 +183,6 @@ fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.
       ${cuerpo(g)}
     </section>`).join('');
   buscar();
-  marcarSegmentos();
 }).catch(() => { document.getElementById('cat').innerHTML = '<p class="estado">No se pudo cargar el catálogo. Recargá la página en unos minutos.</p>'; });
 document.getElementById('q').addEventListener('input', buscar);
 </script>
