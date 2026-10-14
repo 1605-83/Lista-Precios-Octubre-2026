@@ -16,15 +16,18 @@
   --f-num:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 *{box-sizing:border-box}
-html{scroll-padding-top:64px}
+html{scroll-padding-top:130px}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.35;padding:0 16px 48px}
 .wrap{max-width:1100px;margin:0 auto}
 header{padding-block:20px 12px}
 h1{margin:0;font-size:1.5rem;font-weight:800;color:var(--marca)}
 .sub{margin:4px 0 0;color:var(--muted);font-size:.9rem}
 /* segmentos: barra fija arriba, se desliza de costado en el celular */
-nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--bg);margin:0 -16px;padding:10px 16px;border-bottom:1px solid var(--line);
-    display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.arriba{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--bg);margin:0 -16px;padding:10px 16px 0;border-bottom:1px solid var(--line)}
+.buscar{display:block;width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+.buscar:focus-visible{outline:2px solid var(--marca);outline-offset:1px;border-color:var(--marca)}
+.cuenta{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 0}
 nav::-webkit-scrollbar{display:none}
 nav a{flex:0 0 auto;font-size:.85rem;font-weight:600;text-decoration:none;color:var(--marca);border:1.5px solid var(--marca);border-radius:999px;padding:6px 12px;white-space:nowrap}
 nav a:focus-visible{outline:2px solid var(--marca);outline-offset:2px}
@@ -36,8 +39,10 @@ h2 small{font-size:.8rem;font-weight:500;color:var(--muted);text-transform:none;
 @media (min-width:700px){.lista{grid-template-columns:repeat(2,1fr)}}
 @media (min-width:1050px){.lista{grid-template-columns:repeat(3,1fr)}}
 .prod{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;min-width:0;break-inside:avoid;page-break-inside:avoid}
-.foto{width:96px;height:96px;max-width:100%;background:var(--soft);border-radius:8px;display:grid;place-items:center;overflow:hidden}
-.foto img{width:100%;height:100%;object-fit:contain;background:#fff}
+.foto{width:96px;height:96px;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;overflow:hidden}
+.foto img{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff}
+.prod[hidden],section[hidden]{display:none!important}
+mark{background:#fff1a8;color:inherit;padding:0}
 .foto .sin{font-weight:800;font-size:.7rem;color:var(--marca);opacity:.45;letter-spacing:.05em;text-align:center;padding:4px}
 .datos{min-width:0;display:flex;flex-direction:column;gap:3px}
 .desc{font-weight:700;font-size:.95rem;overflow-wrap:anywhere}
@@ -67,7 +72,11 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
     <h1>Catálogo Softys</h1>
     <p class="sub">Lago Puelo · Elebes · Lista 1 con IVA · <span id="vig"></span></p>
   </header>
-  <nav id="nav" aria-label="Segmentos"></nav>
+  <div class="arriba">
+    <input class="buscar" id="q" type="search" placeholder="Buscar por código o descripción (ej. Higienol, 1504076)" aria-label="Buscar producto" autocomplete="off">
+    <p class="cuenta" id="cuenta" hidden></p>
+    <nav id="nav" aria-label="Segmentos"></nav>
+  </div>
   <div id="cat"><p class="estado">Cargando el catálogo…</p></div>
   <footer>Precios en pesos argentinos con IVA. Se actualizan solos cuando cambian en Gescom. Fotos ilustrativas.</footer>
 </div>
@@ -89,6 +98,20 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 const fecha = iso => iso ? iso.split('-').reverse().join('/') : '';
 const limpiar = d => d.replace(/^(PL|TH|PH|RC|SE|PO|PÑ|TF|TD|PD)\s+/i,'').replace(/\s+/g,' ').trim();
 const marca = d => (d.match(/BABYSEC|HIGIENOL|ELITE|SUSSEX|NOBLE|LADYSOFT|COTIDIAN|CARILINA/i) || ['SOFTYS'])[0].toUpperCase();
+const FOTOS_V = '3';   // cambiar cuando se reemplazan las fotos, para que el navegador no muestre las viejas
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+// Buscador: oculta los productos que no coinciden y los segmentos que quedan vacios
+function buscar(){
+  const q = norm(document.getElementById('q').value.trim());
+  let n = 0;
+  document.querySelectorAll('section').forEach(sec => {
+    let vis = 0;
+    sec.querySelectorAll('.prod').forEach(pr => { const ok = !q || pr.dataset.buscar.includes(q); pr.hidden = !ok; if (ok) vis++; });
+    sec.hidden = vis === 0; n += vis;
+  });
+  const c = document.getElementById('cuenta');
+  c.hidden = !q; c.textContent = n ? `${n} ${n === 1 ? 'producto coincide' : 'productos coinciden'}` : 'Ningún producto coincide con la búsqueda.';
+}
 function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
 
 fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
@@ -103,8 +126,8 @@ fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.
       <h2>${esc(g.nombre)} <small>${g.prods.length} productos</small></h2>
       <div class="lista">${g.prods.map(p => {
         const unidad = p[3] ? p[4] / p[3] : p[6];
-        return `<article class="prod">
-          <div class="foto"><img src="img/softys/${esc(p[0])}.jpg" alt="${esc(limpiar(p[1]))}" loading="lazy" onerror="sinFoto(this,'${esc(marca(p[1]))}')"></div>
+        return `<article class="prod" data-buscar="${esc(norm(p[0] + ' ' + p[1]))}">
+          <div class="foto"><img src="img/softys/${esc(p[0])}.jpg?v=${FOTOS_V}" alt="${esc(limpiar(p[1]))}" loading="lazy" onerror="sinFoto(this,'${esc(marca(p[1]))}')"></div>
           <div class="datos">
             <div class="desc">${esc(limpiar(p[1]))}</div>
             <div class="cod">Cód. ${esc(p[0])}${p[3] ? ' · bulto x' + p[3] : ''}</div>
@@ -115,7 +138,9 @@ fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.
           </div>
         </article>`; }).join('')}</div>
     </section>`).join('');
+  buscar();
 }).catch(() => { document.getElementById('cat').innerHTML = '<p class="estado">No se pudo cargar el catálogo. Recargá la página en unos minutos.</p>'; });
+document.getElementById('q').addEventListener('input', buscar);
 </script>
 </body>
 </html>
