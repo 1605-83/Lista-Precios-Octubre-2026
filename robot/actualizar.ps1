@@ -292,11 +292,20 @@ $otmCodigos = @('476411002','476611002','4712001','4722005','4712006','4712005',
   '542507','5410003','545006','545005','545008','545007','82137','82138','8226','8215','82152','82169','5122','5564','9000687','201012008','11134',
   '123110','123126','123108','123204','123135','123051','123053','114613','101339','116414','114210','101629','116916','101303',
   '9297971','522799','930275','522801','876510','835385','522798','971257','947317','861844','9297921','505107','505101','505106',
-  '448344200','448344150','448344160','3626001','3626002','3626003','3626031','4180105','4180106','4180116','4180117','4180118','4180127','4180126',
-  '4180125','41820116','4180155','4180154')
+  '448344200','448344150','448344160','3626001','3626002','3626003','3626031',
+  # Mani King (catalogo Mani King sept 2025)
+  '4180154','4180155','41810153','41820116','4180203','41800208','4180118','4180117','4180116','4180125','4180127','4180126',
+  '4180132','4180105','41800131','4180106','41800103','41800104')
 $otmProv = @($otmCodigos | Where-Object { $prod.ContainsKey($_) } | ForEach-Object { $prod[$_].prov } | Select-Object -Unique)
 $otmFilas = @{}
 foreach ($pv in $otmProv) { foreach ($r in (ListaGeneral $pv)) { $otmFilas[[string]$r[0]] = $r } }
+# Unidades por bulto del catalogo Mani King sept 2025 (Gescom no las tiene: su precio es el del bulto)
+$otmBulto = @{ '4180154' = 15; '4180155' = 15; '41810153' = 20; '41820116' = 15; '4180203' = 16; '4180118' = 15; '4180117' = 15; '4180116' = 15
+  '4180125' = 15; '4180127' = 15; '4180126' = 15 }
+foreach ($c in $otmBulto.Keys) {
+  $r = $otmFilas[$c]
+  if ($r -and -not $r[3] -and $r.Count -gt 6 -and $r[6]) { $otmFilas[$c] = @($r[0], $r[1], $null, $otmBulto[$c], $r[6], $null) }
+}
 $otmProds = @($otmCodigos | Where-Object { $otmFilas.ContainsKey($_) } | ForEach-Object { , $otmFilas[$_] })
 $otmVig = ($otmProv | ForEach-Object { Vig $provs[$_].fecha } | Sort-Object | Select-Object -Last 1)
 $otmJson = ([ordered]@{ vigencia = $otmVig; productos = $otmProds } | ConvertTo-Json -Depth 5 -Compress)
