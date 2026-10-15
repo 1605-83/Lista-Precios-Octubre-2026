@@ -105,7 +105,7 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
 <script>
 // ?lista=2: la misma pagina con la Lista 2 (mayorista)
 const L2 = new URLSearchParams(location.search).get('lista') === '2';
-const DATOS = L2 ? 'datos-l2.json' : DATOS, DATOS_OTM = L2 ? 'datos-otm-l2.json' : 'datos-otm.json';
+const DATOS = L2 ? 'datos-l2.json' : 'datos.json', DATOS_OTM = L2 ? 'datos-otm-l2.json' : 'datos-otm.json';
 document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelectorAll('.nlista').forEach(e => e.textContent = 'Lista 2 mayorista'); });
 
 // Segmentos en el orden del catalogo de Clorox; el segmento de cada producto viene de segmentos-clorox.json
