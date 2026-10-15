@@ -1,0 +1,8 @@
+{
+  "titulo": "Ofertas",
+  "hasta": null,
+  "nota": "Descuento sobre el precio de lista. Pedido de Bruno: 10% al encendedor BX7 (947317), sin fecha de vencimiento.",
+  "items": {
+    "947317": [10, "caja"]
+  }
+}
