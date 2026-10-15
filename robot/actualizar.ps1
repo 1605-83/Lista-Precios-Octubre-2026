@@ -284,6 +284,28 @@ foreach ($pv in $orden) {
   $listas += [ordered]@{ proveedor = $pv; nombre = $nom; color = $color; pallet = $pallet; vigencia = (Vig $provs[$pv].fecha); productos = $prods }
 }
 
+# ---------------- Catalogo OTM Almacen (otras marcas) ----------------
+# Solo los productos del folleto, con su precio de Lista 1 (aunque el proveedor no tenga lista publicada).
+# Se escribe en datos-otm.json solo si cambio algo.
+$otmCodigos = @('476411002','476611002','4712001','4722005','4712006','4712005','4732010','4773020','4714001','4712990','4721002','47111002','47921002',
+  '47995015','47995002','545003','542501','545004','542508','542502','5425044','541004','542504','5425041','5450041','5425042','545000','541206','5412061',
+  '542507','5410003','545006','545005','545008','545007','82137','82138','8226','8215','82152','82169','5122','5564','9000687','201012008','11134',
+  '123110','123126','123108','123204','123135','123051','123053','114613','101339','116414','114210','101629','116916','101303',
+  '9297971','522799','930275','522801','876510','835385','522798','971257','947317','861844','9297921','505107','505101','505106',
+  '448344200','448344150','448344160','3626001','3626002','3626003','3626031','4180105','4180106','4180116','4180117','4180118','4180127','4180126',
+  '4180125','41820116','4180155','4180154')
+$otmProv = @($otmCodigos | Where-Object { $prod.ContainsKey($_) } | ForEach-Object { $prod[$_].prov } | Select-Object -Unique)
+$otmFilas = @{}
+foreach ($pv in $otmProv) { foreach ($r in (ListaGeneral $pv)) { $otmFilas[[string]$r[0]] = $r } }
+$otmProds = @($otmCodigos | Where-Object { $otmFilas.ContainsKey($_) } | ForEach-Object { , $otmFilas[$_] })
+$otmVig = ($otmProv | ForEach-Object { Vig $provs[$_].fecha } | Sort-Object | Select-Object -Last 1)
+$otmJson = ([ordered]@{ vigencia = $otmVig; productos = $otmProds } | ConvertTo-Json -Depth 5 -Compress)
+$otmDest = Join-Path $Salida 'datos-otm.json'
+if (-not ((Test-Path $otmDest) -and ((Get-Content $otmDest -Raw -Encoding UTF8).Trim() -eq $otmJson))) {
+  [IO.File]::WriteAllText($otmDest, $otmJson + "`n", (New-Object Text.UTF8Encoding $false))
+  Write-Host "Catalogo OTM actualizado: $($otmProds.Count) productos"
+}
+
 $nuevo = [ordered]@{ lista = 'LISTA 1'; listas = $listas }
 $json = $nuevo | ConvertTo-Json -Depth 6 -Compress
 $total = ($listas | ForEach-Object { $_.productos.Count } | Measure-Object -Sum).Sum
