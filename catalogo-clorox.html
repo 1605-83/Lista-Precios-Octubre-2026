@@ -92,7 +92,7 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
 <div class="wrap">
   <header>
     <h1>Catálogo Clorox</h1>
-    <p class="sub">Lago Puelo · Elebes · Lista 1 con IVA · <span id="vig"></span></p>
+    <p class="sub">Lago Puelo · Elebes · <span class="nlista">Lista 1</span> con IVA · <span id="vig"></span></p>
   </header>
   <div class="arriba">
     <input class="buscar" id="q" type="search" placeholder="Buscar por código o descripción (ej. Poett, lavandina, 60223)" aria-label="Buscar producto" autocomplete="off">
@@ -103,6 +103,11 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
   <footer>Precios en pesos argentinos con IVA. Se actualizan solos cuando cambian en Gescom. Fotos ilustrativas.</footer>
 </div>
 <script>
+// ?lista=2: la misma pagina con la Lista 2 (mayorista)
+const L2 = new URLSearchParams(location.search).get('lista') === '2';
+const DATOS = L2 ? 'datos-l2.json' : DATOS, DATOS_OTM = L2 ? 'datos-otm-l2.json' : 'datos-otm.json';
+document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelectorAll('.nlista').forEach(e => e.textContent = 'Lista 2 mayorista'); });
+
 // Segmentos en el orden del catalogo de Clorox; el segmento de cada producto viene de segmentos-clorox.json
 // (sacado del catalogo, o de la descripcion para los productos que no estan en el catalogo)
 const ORDEN = ['Lavandinas','Desinfectantes en aerosol','Toallitas desinfectantes','Limpiadores específicos','Limpiadores líquidos',
@@ -152,7 +157,7 @@ function sinFoto(img, texto){ const s = document.createElement('span'); s.classN
 // Dinamicas del mes (dinamicas-clorox.json): {codigo: [% de descuento, condicion]}. Se dejan de mostrar despues de "hasta".
 let DIN = {};
 const dinamicas = fetch('dinamicas-clorox.json', {cache:'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null);
-Promise.all(['datos.json', 'segmentos-clorox.json'].map(u => fetch(u, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })).concat([dinamicas])).then(([d, SEG, dn]) => {
+Promise.all([DATOS, 'segmentos-clorox.json'].map(u => fetch(u, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })).concat([dinamicas])).then(([d, SEG, dn]) => {
   const hoy = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);   // fecha argentina
   if (dn && (!dn.hasta || hoy <= dn.hasta)) DIN = dn.items || {};
   const l = d.listas.find(x => x.proveedor === '247');

@@ -77,7 +77,7 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
 <div class="wrap">
   <header>
     <h1>Catálogo Georgalos</h1>
-    <p class="sub">Lago Puelo · Elebes · Lista 1 con IVA · <span id="vig"></span></p>
+    <p class="sub">Lago Puelo · Elebes · <span class="nlista">Lista 1</span> con IVA · <span id="vig"></span></p>
   </header>
   <div class="arriba">
     <input class="buscar" id="q" type="search" placeholder="Buscar por código o descripción (ej. Mantecol, Toddy, 2332510)" aria-label="Buscar producto" autocomplete="off">
@@ -88,6 +88,11 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
   <footer>Precios en pesos argentinos con IVA. Se actualizan solos cuando cambian en Gescom. Fotos ilustrativas.</footer>
 </div>
 <script>
+// ?lista=2: la misma pagina con la Lista 2 (mayorista)
+const L2 = new URLSearchParams(location.search).get('lista') === '2';
+const DATOS = L2 ? 'datos-l2.json' : DATOS, DATOS_OTM = L2 ? 'datos-otm-l2.json' : 'datos-otm.json';
+document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelectorAll('.nlista').forEach(e => e.textContent = 'Lista 2 mayorista'); });
+
 // Segmentos en el orden del catalogo de Georgalos; el segmento de cada producto viene de segmentos-georgalos.json
 // (de la pagina del catalogo, o de la descripcion para los productos que no estan en el catalogo)
 const ORDEN = ['Golosinas','Pastillas inhalantes','Chocolates','Repostería','Alfajores','Wafers','Mantecol','Turrón y maní','Cacao en polvo','Galletas','Barritas','Cereales','Budines','Otros'];
@@ -128,7 +133,7 @@ function buscar(){
 }
 function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
 
-Promise.all(['datos.json', 'segmentos-georgalos.json'].map(u => fetch(u, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }))).then(([d, SEG]) => {
+Promise.all([DATOS, 'segmentos-georgalos.json'].map(u => fetch(u, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }))).then(([d, SEG]) => {
   const ls = d.listas.filter(x => x.proveedor === '42' || x.proveedor === '43');
   const l = { vigencia: ls.map(x => x.vigencia).sort().pop(), productos: ls.flatMap(x => x.productos) };
   document.getElementById('vig').textContent = 'vigencia ' + fecha(l.vigencia);

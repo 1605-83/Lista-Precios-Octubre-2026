@@ -47,7 +47,7 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
 <div class="wrap">
   <header>
     <h1 id="h1">Listas de precios LP - ELEBES</h1>
-    <p class="sub">Lista 1 · Precios con IVA incluido · se actualizan solas cuando cambia algún precio en Gescom</p>
+    <p class="sub"><span class="nlista">Lista 1</span> · Precios con IVA incluido · se actualizan solas cuando cambia algún precio en Gescom</p>
   </header>
 
   <div class="bar">
@@ -64,6 +64,12 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
 </div>
 
 <script>
+// ?lista=2: la misma pagina con la Lista 2 (mayorista)
+const L2 = new URLSearchParams(location.search).get('lista') === '2';
+const DATOS = L2 ? 'datos-l2.json' : 'datos.json', DATOS_OTM = L2 ? 'datos-otm-l2.json' : 'datos-otm.json';
+document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelectorAll('.nlista').forEach(e => e.textContent = 'Lista 2 mayorista'); });
+document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelectorAll('a[href$=".xlsx"]').forEach(a => a.remove()); });   // el Excel es de la Lista 1
+
 const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
 const money = v => v==null ? '' : fmt.format(v);
@@ -93,7 +99,7 @@ function render(){
     const body = rows.map(r => `<tr><td class="cod">${hl(r[0],q)}</td><td${r[5]?` class="nota" title="${esc(r[5])}"`:''}>${hl(r[1],q)}</td>${l.pallet?`<td class="c">${r[2]??''}</td>`:''}<td class="c">${r[3]??''}</td><td class="n">${money(r[4])}</td><td class="n">${r[3]?money(r[4]/r[3]):money(r[6])}</td></tr>`).join('')
       || `<tr><td colspan="${cols}" class="empty">Esta lista no tiene productos.</td></tr>`;
     return `<section id="p${esc(l.proveedor)}">
-      <p class="title">LISTA DE PRECIOS ${esc(l.nombre)} - ${mesAnio(l.vigencia)} (LISTA 1 - PRECIOS CON IVA)</p>
+      <p class="title">LISTA DE PRECIOS ${esc(l.nombre)} - ${mesAnio(l.vigencia)} (${L2 ? 'LISTA 2 MAYORISTA' : 'LISTA 1'} - PRECIOS CON IVA)</p>
       <p class="vig">Vigencia: ${fecha(l.vigencia)} · ${l.productos.length} productos</p>
       <div class="tbl"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>
     </section>`;
@@ -106,12 +112,12 @@ function render(){
 
 function chips(){
   const base = location.pathname;
-  document.getElementById('chips').innerHTML = (solo ? `<a class="todas" href="${base}">Ver todas las listas</a>` : '') +
+  document.getElementById('chips').innerHTML = (solo ? `<a class="todas" href="${base}${L2 ? '?lista=2' : ''}">Ver todas las listas</a>` : '') +
     LISTAS.filter(l => !solo || l.proveedor !== solo).map(l =>
-      `<a href="${solo ? base + '?p=' + encodeURIComponent(l.proveedor) : '#p' + esc(l.proveedor)}" style="background:#${l.color}">${esc(l.nombre)}</a>`).join('');
+      `<a href="${solo ? base + '?p=' + encodeURIComponent(l.proveedor) + (L2 ? '&lista=2' : '') : '#p' + esc(l.proveedor)}" style="background:#${l.color}">${esc(l.nombre)}</a>`).join('');
 }
 
-fetch('datos.json', {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
+fetch(DATOS, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); }).then(d => {
   LISTAS = d.listas;
   if(solo){
     const l = LISTAS.find(x => x.proveedor === solo);

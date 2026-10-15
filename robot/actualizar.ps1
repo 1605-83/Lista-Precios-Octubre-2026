@@ -8,11 +8,13 @@ param(
   [string]$Salida = '.',
   [string]$FilasJson = '',   # para probar sin la base: archivo con las filas que devolveria la consulta
   [switch]$PedirClave,       # para correrlo en la PC: pide la clave en pantalla (no se muestra ni se guarda)
-  [string]$GuardarFilas = '' # para revisar en la PC: guarda lo leido de la base en este archivo (fuera del repo)
+  [string]$GuardarFilas = '', # para revisar en la PC: guarda lo leido de la base en este archivo (fuera del repo)
+  [string]$Lista = '1',         # codigo de la lista en la base (precios.lista): 1 = Lista 1, 2 = Lista 2 mayorista
+  [string]$Sufijo = ''          # se agrega al nombre de los archivos: '-l2' -> datos-l2.json y datos-otm-l2.json
 )
 $ErrorActionPreference = 'Stop'
 
-$LISTA = '1'                                   # codigo de "LISTA 1" en la base (precios.lista)
+$LISTA = $Lista                               # codigo de la lista en la base (precios.lista)
 $PROV  = @{ softys = '150'; clorox = '247' }   # SOFTYS ARGENTINA S.A / GRUPO AYUDIN ARGENTINA S.A (Clorox)
 
 # ---------------- Reglas de la lista Softys (pedidas por Bruno, 13-14/10/2026) ----------------
@@ -309,16 +311,16 @@ foreach ($c in $otmBulto.Keys) {
 $otmProds = @($otmCodigos | Where-Object { $otmFilas.ContainsKey($_) } | ForEach-Object { , $otmFilas[$_] })
 $otmVig = ($otmProv | ForEach-Object { Vig $provs[$_].fecha } | Sort-Object | Select-Object -Last 1)
 $otmJson = ([ordered]@{ vigencia = $otmVig; productos = $otmProds } | ConvertTo-Json -Depth 5 -Compress)
-$otmDest = Join-Path $Salida 'datos-otm.json'
+$otmDest = Join-Path $Salida "datos-otm$Sufijo.json"
 if (-not ((Test-Path $otmDest) -and ((Get-Content $otmDest -Raw -Encoding UTF8).Trim() -eq $otmJson))) {
   [IO.File]::WriteAllText($otmDest, $otmJson + "`n", (New-Object Text.UTF8Encoding $false))
   Write-Host "Catalogo OTM actualizado: $($otmProds.Count) productos"
 }
 
-$nuevo = [ordered]@{ lista = 'LISTA 1'; listas = $listas }
+$nuevo = [ordered]@{ lista = "LISTA $Lista"; listas = $listas }
 $json = $nuevo | ConvertTo-Json -Depth 6 -Compress
 $total = ($listas | ForEach-Object { $_.productos.Count } | Measure-Object -Sum).Sum
-$destino = Join-Path $Salida 'datos.json'
+$destino = Join-Path $Salida "datos$Sufijo.json"
 if ((Test-Path $destino) -and ((Get-Content $destino -Raw -Encoding UTF8).Trim() -eq $json)) {
   Write-Host "Sin cambios en las listas ($($listas.Count) proveedores, $total productos): no se toca nada"
   exit 0
