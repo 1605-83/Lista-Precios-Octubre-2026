@@ -94,14 +94,14 @@ const DATOS = L2 ? 'datos-l2.json' : 'datos.json', DATOS_OTM = L2 ? 'datos-otm-l
 document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelectorAll('.nlista').forEach(e => e.textContent = 'Lista 2 mayorista'); });
 
 // Segmentos de Ecovita; el segmento de cada producto viene de segmentos-ecovita.json (segun el tipo de producto)
-const ORDEN = ['Jabones líquidos para ropa','Suavizantes','Aditivos para planchado','Limpiadores','Lavavajillas','Otros'];
+const ORDEN = ['Jabones líquidos para ropa','Suavizantes','Aditivos para planchado','Aromatizantes','Limpiadores','Lavavajillas','Otros'];
 const SUBLINEAS = {};
 const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fecha = iso => iso ? iso.split('-').reverse().join('/') : '';
 const limpiar = d => d.replace(/\s+/g,' ').trim();
 const marca = d => 'ECOVITA';
-const FOTOS_V = '1';   // cambiar cuando se reemplazan las fotos, para que el navegador no muestre las viejas
+const FOTOS_V = '2';   // cambiar cuando se reemplazan las fotos, para que el navegador no muestre las viejas
 const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 // Segmentos tildados: ninguno = se ven todos; uno o varios = solo esos (se combinan con el buscador)
 const elegidos = new Set();
