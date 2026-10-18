@@ -150,7 +150,7 @@ Promise.all([DATOS_OTM, 'segmentos-riosma.json'].map(u => fetch(u, {cache:'no-st
         <div class="cod">Cód. ${esc(p[0])}${p[3] ? ' · bulto x' + p[3] : ''}</div>
         <div class="precios">
           ${p[4] != null ? `<div class="precio bulto"><span>Bulto</span><b>${fmt.format(p[4])}</b></div>` : ''}
-          ${p[3] ? `<div class="precio"><span>Unidad</span><b>${fmt.format(unidad)}</b></div>` : (unidad != null ? `<div class="precio bulto"><span></span><b>${fmt.format(unidad)}</b></div>` : '')}
+          ${p[3] ? `<div class="precio"><span>Unidad</span><b>${fmt.format(unidad)}</b></div>` : (unidad != null ? `<div class="precio bulto"><span>${p[7] === 'kg' ? 'Precio por kg' : 'Precio de lista'}</span><b>${fmt.format(unidad)}</b></div>` : '')}
         </div>
       </div>
     </article>`; };
