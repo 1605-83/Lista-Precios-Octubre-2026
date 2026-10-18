@@ -317,6 +317,43 @@ if (-not ((Test-Path $otmDest) -and ((Get-Content $otmDest -Raw -Encoding UTF8).
   Write-Host "Catalogo OTM actualizado: $($otmProds.Count) productos"
 }
 
+# ---------------- Catalogos con archivo propio (Riosma, Ilolay) ----------------
+# Lista de codigos en el orden del catalogo. Lo que se vende por kilo (hormas, fiambres) va con su precio por kg (8vo dato = 'kg').
+# Escribe datos-<nombre><sufijo>.json solo si cambio algo.
+function ArchivoCatalogo([string]$nombre, [string[]]$codigos) {
+  $provC = @($codigos | Where-Object { $prod.ContainsKey($_) } | ForEach-Object { $prod[$_].prov } | Select-Object -Unique)
+  $filasC = @{}
+  foreach ($pv in $provC) { foreach ($r in (ListaGeneral $pv)) { $filasC[[string]$r[0]] = $r } }
+  $prodsC = @()
+  foreach ($c in $codigos) {
+    $k = [string](Num $c)
+    if ($filasC.ContainsKey($k)) { $prodsC += , $filasC[$k]; continue }
+    $p = $prod[$c]; if (-not $p -or $p.bloq -or -not ($p.otro -gt 1)) { continue }
+    $prodsC += , @((Num $c), $p.desc, $null, $null, $null, $null, (R2 $p.otro), 'kg')
+  }
+  $vigC = ($provC | ForEach-Object { Vig $provs[$_].fecha } | Sort-Object | Select-Object -Last 1)
+  $jsonC = ([ordered]@{ vigencia = $vigC; productos = $prodsC } | ConvertTo-Json -Depth 5 -Compress)
+  $destC = Join-Path $Salida "datos-$nombre$Sufijo.json"
+  if (-not ((Test-Path $destC) -and ((Get-Content $destC -Raw -Encoding UTF8).Trim() -eq $jsonC))) {
+    [IO.File]::WriteAllText($destC, $jsonC + "`n", (New-Object Text.UTF8Encoding $false))
+    Write-Host "Catalogo $nombre actualizado: $($prodsC.Count) productos"
+  }
+}
+# Riosma: fiambres 214 / Champion y quesos Linea Dorada (catalogo Elebes 2026)
+ArchivoCatalogo 'riosma' @('100818','100817','100914','100913','100850','100201','100202','100401','100301',
+  '1001719','1001717','1004735','1004736','1004730','100702','100101','1003101','2419','5014','1001002','100501',
+  '715','713','712','711','716')
+# Ilolay: los del catalogo Ilolay en su orden, y despues el resto de la lista de Ilolay (proveedor 2)
+$iloCat = @('5200','5250','5322','5000','5001','5051','5050','4411','4410','5323','4531','4530','5325','5324','3571','3570',
+  '1041','1043','1040','1042','1033','1032','1031','6000','6001','6002','6101','6102','3200','3250','3251','3201',
+  '4140','4141','4142','4144','4180','4181','4270','4271','4230','4231','4232','3603','3601','3600','3651','3650','3410','3411',
+  '3500','3550','3502','3552','3504','3700','3750','3670','3560','1614','1615','1631','1653','1651','1654',
+  '1100','01121','1120','1140','1180','1181','1300','1320','1340','1530','1500','1801','1802',
+  '4521','4520','5402','5403','3241','3240','5400','5401','3701','2000','2001','2002','2003','2070','2201','2200',
+  '7804','7840','7922','7820','7900','6096','6181','1082','1081','5080','1090','1091')
+$iloResto = @($prod.Keys | Where-Object { $prod[$_].prov -eq '2' -and $iloCat -notcontains $_ } | Sort-Object { Orden $_ })
+ArchivoCatalogo 'ilolay' (@($iloCat) + $iloResto)
+
 $nuevo = [ordered]@{ lista = "LISTA $Lista"; listas = $listas }
 $json = $nuevo | ConvertTo-Json -Depth 6 -Compress
 $total = ($listas | ForEach-Object { $_.productos.Count } | Measure-Object -Sum).Sum
