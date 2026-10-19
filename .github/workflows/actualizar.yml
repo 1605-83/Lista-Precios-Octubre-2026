@@ -3,6 +3,7 @@ name: Actualizar listas de precios desde Gescom
 on:
   schedule:
     - cron: '20 8-23 * * 1-6'   # cada hora de 05:20 a 20:20 hora argentina, lunes a sabado
+    - cron: '0 12 * * *'       # todos los dias a las 09:00 hora argentina (incluido domingo), pedido de Bruno
   workflow_dispatch:            # boton "Run workflow" para correrlo a mano
 
 permissions:
