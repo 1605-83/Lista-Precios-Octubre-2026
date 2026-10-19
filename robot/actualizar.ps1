@@ -180,6 +180,9 @@ foreach ($p in $prod.Values) {
   if (-not $elegido) { $elegido = $p.packs | Sort-Object { $_[0] } | Select-Object -First 1 }
   $p.factor = $elegido[0]; $p.pack = $elegido[1]
 }
+# Unidades por bulto corregidas a mano (Gescom tiene mal el factor del Pack; el precio del bulto es correcto)
+$factorCorregido = @{ '39013681' = 24 }   # PRONTO SHAKE 4,5 4 packs x6u x473ml: bulto x24 (pedido de Bruno, 19/10/2026)
+foreach ($c in $factorCorregido.Keys) { if ($prod.ContainsKey($c) -and $prod[$c].pack) { $prod[$c].factor = $factorCorregido[$c] } }
 function R2($v) { if ($v -eq $null) { $null } else { [math]::Round([double]$v, 2) } }
 function CodigosDe($pv) { $prod.Keys | Where-Object { $prod[$_].prov -eq $pv } | Sort-Object { Orden $_ } }
 
