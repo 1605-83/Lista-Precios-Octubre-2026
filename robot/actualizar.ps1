@@ -130,6 +130,26 @@ if ($FilasJson) {
 }
 if ($filas.Count -lt 100) { throw "La base devolvio solo $($filas.Count) precios: no se actualiza la lista para no publicar una lista incompleta" }
 
+# ---------------- Precios cargados a mano (manual/precios-*.json) ----------------
+# Cuando Gescom ya tiene un aumento que todavia no llego a la base, se cargan los precios del Excel exportado de Gescom.
+# Cada fila: [articulo, lista, unidad, precio final con IVA]. Se aplica solo si el precio de la base es mas viejo que "desde";
+# cuando la base trae precios con fecha igual o posterior, se usa la base y el archivo manual queda sin efecto.
+$dirManual = Join-Path (Split-Path $PSScriptRoot -Parent) 'manual'
+if (Test-Path $dirManual) {
+  foreach ($fm in (Get-ChildItem $dirManual -Filter 'precios-*.json')) {
+    $man = Get-Content $fm.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+    $mp = @{}; foreach ($m in $man.filas) { if ([string]$m[1] -eq $LISTA) { $mp["$($m[0])|$($m[2])"] = [double]$m[3] } }
+    $n = 0
+    foreach ($f in $filas) {
+      $k = "$($f.articulo)|$($f.unidad)"
+      if (-not $mp.ContainsKey($k) -or [string]$f.actualizado -ge $man.desde) { continue }
+      $f.neto = ($mp[$k] - [double]$f.impuesto_interno * [double]$f.factor) / (1 + [double]$f.alicuota_iva)
+      $f.actualizado = "$($man.desde)T10:00:00.000Z"; $n++
+    }
+    if ($n) { Write-Host "Precios manuales de $($fm.Name) (lista $LISTA): $n" }
+  }
+}
+
 # Precio final con IVA (e impuesto interno por unidad base), como It_PrecioFinal de Gescom
 function Final($f) { [double]$f.neto * (1 + [double]$f.alicuota_iva) + [double]$f.impuesto_interno * [double]$f.factor }
 function Num($v) { $n = 0L; if ([long]::TryParse([string]$v, [ref]$n)) { $n } else { [string]$v } }   # codigos numericos como numero
