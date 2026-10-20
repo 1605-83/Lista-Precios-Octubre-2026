@@ -61,8 +61,6 @@ header.cab{display:flex;justify-content:space-between;align-items:flex-start;gap
 
   <div class="bar">
     <input id="q" type="search" placeholder="Buscar por código o producto (ej. Babysec, Poett, 1504076)" aria-label="Buscar producto">
-    <nav class="chips" id="chips" aria-label="Proveedores"></nav>
-    <span class="count" id="count"></span>
   </div>
 
   <div id="listas"><p class="estado">Cargando las listas de precios…</p></div>
@@ -112,7 +110,7 @@ function render(){
     </section>`;
   }).join('') || '<p class="estado">Ningún producto coincide con la búsqueda.</p>';
   const nProd = visibles.reduce((s,l) => s + l.productos.length, 0);
-  document.getElementById('count').textContent = q
+  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = q
     ? `${total} productos coinciden en ${conHits} ${conHits===1?'lista':'listas'}`
     : `${visibles.length} ${visibles.length===1?'lista':'listas'} · ${nProd} productos`;
 }
@@ -130,7 +128,7 @@ fetch(DATOS, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status)
     const l = LISTAS.find(x => x.proveedor === solo);
     if(l){ document.getElementById('h1').textContent = 'Lista de precios ' + l.nombre; document.title = 'Lista de precios ' + l.nombre; }
   }
-  chips(); render();
+  render();   // los botones de proveedores y el contador se sacaron (pedido de Bruno, 20/10/2026)
 }).catch(() => {
   document.getElementById('listas').innerHTML = '<p class="estado">No se pudieron cargar las listas. Recargá la página en unos minutos.</p>';
 });
