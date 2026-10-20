@@ -61,7 +61,12 @@ mark{background:#fff1a8;color:inherit;padding:0}
 .precio.bulto b{font-size:1.05rem;color:var(--marca)}
 .estado{color:var(--muted);margin-top:24px}
 footer{margin-top:32px;color:var(--muted);font-size:.8rem}
-@media print{
+/* boton Descargar PDF, arriba a la derecha (usa "Guardar como PDF" del navegador) */
+header.cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pdf{flex:0 0 auto;font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--on-marca);background:var(--marca);border:0;border-radius:10px;padding:9px 14px;white-space:nowrap}
+.pdf:hover{filter:brightness(1.15)}.pdf:focus-visible{outline:2px solid var(--marca);outline-offset:2px}
+.pdf[disabled]{opacity:.6;cursor:wait}
+@media print{ .pdf,.arriba{display:none!important} .prod{break-inside:avoid} header,h1,h2,section,.sub{-webkit-print-color-adjust:exact;print-color-adjust:exact} }@media print{
   @page{size:A4;margin:10mm}
   body{padding:0;font-size:11px}
   nav{display:none}
@@ -75,10 +80,10 @@ footer{margin-top:32px;color:var(--muted);font-size:.8rem}
 </head>
 <body>
 <div class="wrap">
-  <header>
+  <header class="cab"><div>
     <h1>Catálogo Georgalos</h1>
     <p class="sub">Lago Puelo · Elebes · <span class="nlista">Lista 1</span> con IVA · <span id="vig"></span></p>
-  </header>
+  </div><button type="button" class="pdf" id="btnPdf" onclick="descargarPDF()" title="Guardar el catálogo como PDF">⬇ Descargar PDF</button></header>
   <div class="arriba">
     <input class="buscar" id="q" type="search" placeholder="Buscar por código o descripción (ej. Mantecol, Toddy, 2332510)" aria-label="Buscar producto" autocomplete="off">
     <p class="cuenta" id="cuenta" hidden></p>
@@ -177,5 +182,17 @@ Promise.all([DATOS, 'segmentos-georgalos.json'].map(u => fetch(u, {cache:'no-sto
 }).catch(() => { document.getElementById('cat').innerHTML = '<p class="estado">No se pudo cargar el catálogo. Recargá la página en unos minutos.</p>'; });
 document.getElementById('q').addEventListener('input', buscar);
 </script>
-</body>
+<script>
+// Descargar PDF: carga todas las fotos (vienen diferidas) y abre "Guardar como PDF" con el nombre del catalogo y la fecha
+async function descargarPDF(){
+  const b=document.getElementById('btnPdf'); b.disabled=true; const t0=b.textContent; b.textContent='Preparando…';
+  const imgs=[...document.images]; imgs.forEach(i=>{ i.loading='eager'; });
+  await Promise.race([Promise.all(imgs.map(i=>i.complete? 0 : new Promise(r=>{ i.addEventListener('load',r,{once:true}); i.addEventListener('error',r,{once:true}); }))), new Promise(r=>setTimeout(r,10000))]);
+  const tit=document.title, h=new Date(Date.now()-3*3600e3).toISOString().slice(0,10).split('-').reverse().join('-');
+  const lista=(document.querySelector('.nlista')||{}).textContent||'';
+  document.title=`${document.querySelector('h1').textContent} - ${lista} - ${h}`;
+  b.disabled=false; b.textContent=t0;
+  window.print(); setTimeout(()=>{ document.title=tit; },1000);
+}
+</script></body>
 </html>
