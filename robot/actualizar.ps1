@@ -128,7 +128,13 @@ if ($FilasJson) {
   $stockFilas = @(); $stockCorte = ''
   if ($Sufijo -eq '') {
     try {
-      $stockFilas = Consulta "SELECT articulo, SUM(cantidad) AS cant FROM stock GROUP BY articulo"
+      # disponible = stock del deposito - pedidos cargados que todavia no se facturaron (pedido de Bruno, 22/10/2026):
+      # los pedidos en etapa Entrega ya tienen factura y ya estan descontados; los pendientes en etapas anteriores
+      # (Facturacion, Descuentos, Impuestos, LineaCredito, ReservaStock, TipoVenta) todavia no
+      $stockFilas = Consulta "SELECT s.articulo, s.cant - COALESCE(p.cant, 0) AS cant FROM (SELECT articulo, SUM(cantidad) AS cant FROM stock GROUP BY articulo) s
+          LEFT JOIN (SELECT i.articulo, SUM(i.cantidad * COALESCE(NULLIF(i.factor, 0), 1)) AS cant FROM venta_items i JOIN ventas v ON v.id = i.venta_id
+                     WHERE v.tipo = 'VEN' AND v.estado = 'Pendiente' AND v.etapa <> 'Entrega' AND v.fecha >= date('now', '-30 day') GROUP BY i.articulo) p
+          ON p.articulo = s.articulo"
       $stockCorte = [string](@(Consulta "SELECT MAX(actualizado) AS act FROM stock")[0].act)
     } catch { Write-Warning "No se pudo leer el stock: $_" }
   }
