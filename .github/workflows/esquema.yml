@@ -1,0 +1,18 @@
+name: Control de stock de articulos (temporal)
+on: workflow_dispatch
+jobs:
+  control:
+    runs-on: windows-latest
+    steps:
+      - name: Stock y pendientes de los articulos
+        shell: powershell
+        env:
+          GESCOM_LPE_CLAVE: ${{ secrets.GESCOM_LPE_CLAVE }}
+        run: |
+          $h = @{ Authorization = "Bearer $env:GESCOM_LPE_CLAVE" }
+          $b = 'https://datos-gescom.panelempresas.workers.dev'
+          function Q($sql){ (Invoke-RestMethod "$b/consulta" -Method Post -Headers $h -ContentType 'application/json' -Body (@{ sql = $sql } | ConvertTo-Json)).filas }
+          $a = "'39014466','39014469','39014470','39014471','39014473','39014474'"
+          Q "SELECT articulo, deposito, cantidad, actualizado FROM stock WHERE articulo IN ($a) ORDER BY articulo, deposito" | ForEach-Object { "stock: $($_.articulo) dep=$($_.deposito) cant=$($_.cantidad) act=$($_.actualizado)" }
+          Q "SELECT i.articulo, v.etapa, v.estado, SUM(i.cantidad*COALESCE(NULLIF(i.factor,0),1)) AS u, COUNT(*) AS n FROM venta_items i JOIN ventas v ON v.id=i.venta_id WHERE i.articulo IN ($a) AND v.tipo='VEN' AND v.fecha >= date('now','-10 day') GROUP BY i.articulo, v.etapa, v.estado ORDER BY i.articulo" | ForEach-Object { "ped: $($_.articulo) $($_.etapa)/$($_.estado) unidades=$($_.u) renglones=$($_.n)" }
+          Q "SELECT articulo, area, cantidad, actualizado FROM digip_stock WHERE articulo IN ($a)" | ForEach-Object { "digip: $($_.articulo) $($_.area) cant=$($_.cantidad) act=$($_.actualizado)" }
