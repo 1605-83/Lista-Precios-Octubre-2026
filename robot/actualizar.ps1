@@ -124,6 +124,14 @@ if ($FilasJson) {
   # Como se vende: cuantos renglones de venta hubo con cada cantidad
   $ventas = Consulta "SELECT i.articulo, i.cantidad, COUNT(*) AS n FROM venta_items i JOIN articulos a ON a.codigo = i.articulo JOIN ventas v ON v.id = i.venta_id
           WHERE a.proveedor IN ($lp) AND v.tipo = 'VEN' AND i.cantidad > 0 GROUP BY i.articulo, i.cantidad"
+  # Stock actual (como el reporte Inventario > Stock Actual de Gescom con Deposito: Todos): unidades de cada articulo sumando los depositos
+  $stockFilas = @(); $stockCorte = ''
+  if ($Sufijo -eq '') {
+    try {
+      $stockFilas = Consulta "SELECT articulo, SUM(cantidad) AS cant FROM stock GROUP BY articulo"
+      $stockCorte = [string](@(Consulta "SELECT MAX(actualizado) AS act FROM stock")[0].act)
+    } catch { Write-Warning "No se pudo leer el stock: $_" }
+  }
   $clave = $null
   # copia local de lo leido (tiene costos: nunca dentro del repo), para revisar sin volver a consultar la base
   if ($GuardarFilas) { [IO.File]::WriteAllText($GuardarFilas, ([ordered]@{ precios = $filas; digip = $digip; ventas = $ventas } | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding $false)) }
@@ -376,6 +384,19 @@ $iloCat = @('5200','5250','5322','5000','5001','5051','5050','4411','4410','5323
   '7804','7840','7922','7820','7900','6096','6181','1082','1081','5080','1090','1091')
 $iloResto = @($prod.Keys | Where-Object { $prod[$_].prov -eq '2' -and $iloCat -notcontains $_ } | Sort-Object { Orden $_ })
 ArchivoCatalogo 'ilolay' (@($iloCat) + $iloResto)
+
+# ---------------- Sin stock: productos de las listas sin unidades en ningun deposito (stock.json, lo leen los catalogos) ----------------
+if ($Sufijo -eq '' -and $stockFilas.Count -gt 50) {   # con menos de 50 filas la lectura vino incompleta: no se publica para no marcar todo sin stock
+  $hay = @{}; foreach ($s in $stockFilas) { $hay[([string]$s.articulo).Trim()] = [double]$s.cant }
+  $sin = @($prod.Keys | Where-Object { -not $hay.ContainsKey($_) -or $hay[$_] -le 0 } | Sort-Object)
+  $stockDest = Join-Path $Salida 'stock.json'
+  $stockJson = ([ordered]@{ corte = $stockCorte; sin = $sin } | ConvertTo-Json -Depth 3 -Compress)
+  $anterior = if (Test-Path $stockDest) { (Get-Content $stockDest -Raw -Encoding UTF8 | ConvertFrom-Json) } else { $null }
+  if (-not $anterior -or ((@($anterior.sin) -join ',') -ne ($sin -join ','))) {
+    [IO.File]::WriteAllText($stockDest, $stockJson + "`n", (New-Object Text.UTF8Encoding $false))
+    Write-Host "Stock: $($sin.Count) productos sin stock (base al $stockCorte)"
+  } else { Write-Host "Stock sin cambios: $($sin.Count) productos sin stock" }
+}
 
 $nuevo = [ordered]@{ lista = "LISTA $Lista"; listas = $listas }
 $json = $nuevo | ConvertTo-Json -Depth 6 -Compress
