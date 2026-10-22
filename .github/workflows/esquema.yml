@@ -1,0 +1,16 @@
+name: Esquema de la base (solo nombres de tablas y columnas)
+on: workflow_dispatch
+jobs:
+  esquema:
+    runs-on: windows-latest
+    steps:
+      - name: Tablas y columnas (sin datos)
+        shell: powershell
+        env:
+          GESCOM_LPE_CLAVE: ${{ secrets.GESCOM_LPE_CLAVE }}
+        run: |
+          $h = @{ Authorization = "Bearer $env:GESCOM_LPE_CLAVE" }
+          $b = 'https://datos-gescom.panelempresas.workers.dev'
+          $r = Invoke-RestMethod "$b/consulta" -Method Post -Headers $h -ContentType 'application/json' -Body (@{ sql = "SELECT name, sql FROM sqlite_master WHERE type='table' ORDER BY name" } | ConvertTo-Json)
+          foreach ($t in $r.filas) { $cols = ([regex]::Matches([string]$t.sql, '(?m)^\s*"?([A-Za-z_][A-Za-z0-9_]*)"?\s+[A-Z]') | ForEach-Object { $_.Groups[1].Value }) -join ', '; "$($t.name): $cols" }
+          try { (Invoke-RestMethod "$b/estado" -Headers $h).datos | ForEach-Object { "estado: $($_.que) $($_.actualizado)" } } catch { "sin /estado" }
