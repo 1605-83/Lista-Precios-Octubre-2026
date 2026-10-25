@@ -143,14 +143,12 @@ const BEBIDAS = [
       ['Fernandito Forte (fernet con cola 1 L)', 'fernandito-forte', [[0, 6500]]],
     ]],
     ['Gin', [
-      ['Gin Forte', '', [[0, 6500]]],
       ['Gin Merle clásico', 'gin-merle-clasico', [[0, 9000]]],
       ['Gin Merle Pink botella', 'gin-merle-pink', [[0, 9500]]],
     ]],
     ['Vodka', [
       ['Skyy sabores', 'skyy-sabores', [[0, 9500]]],
       ['Skyy Cosmic', 'skyy-cosmic', [[0, 12500]]],
-      ['Sernova Raspberry', '', [[0, 6500]]],
       ['Smirnoff sabores botella', 'smirnoff-botella', [[0, 8500]]],
       ['Smirnoff Ice lata sabores', 'smirnoff-lata', [[6, 16500]]],
       ['Dr. Lemon sabores', 'dr-lemon', [[6, 13000]]],
@@ -196,7 +194,7 @@ const BEBIDAS = [
     ]],
   ]],
 ];
-const FOTOS_V = '1';   // cambiar cuando se reemplazan las fotos
+const FOTOS_V = '2';   // cambiar cuando se reemplazan las fotos
 const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:0,maximumFractionDigits:0});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
