@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catálogo de Bebidas LP - ELEBES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Mismo armado que el catalogo de Softys, con fondo azul. Los precios no vienen de Gescom: se cargan a mano en BEBIDAS (abajo). */
+:root{
+  --bg:#0B3D91; --fg:#14181f; --muted:#5b6472; --line:#dde2ea;
+  --marca:#0B3D91; --claro:#9FD0FF; --blanco:#ffffff;
+  --f-ui:"Archivo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:130px}
+body{margin:0;background:var(--bg);color:var(--blanco);font-family:var(--f-ui);font-size:15px;line-height:1.35;padding:0 16px 48px}
+.wrap{max-width:1100px;margin:0 auto}
+header{padding-block:20px 12px}
+h1{margin:0;font-size:1.3rem;font-weight:800;color:var(--blanco)}
+.sub{margin:4px 0 0;color:#D5E4FF;font-size:.85rem}
+.arriba{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--bg);margin:0 -16px;padding:10px 16px 0;border-bottom:1px solid rgba(255,255,255,.35)}
+.buscar{display:block;width:100%;font:inherit;font-size:16px;padding:10px 12px;border:0;border-radius:10px;background:#fff;color:var(--fg)}
+.buscar:focus-visible{outline:3px solid var(--claro);outline-offset:1px}
+.cuenta{font-size:.8rem;color:#D5E4FF;margin:6px 0 0}
+nav{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 0}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--blanco);background:transparent;border:1.5px solid var(--blanco);border-radius:999px;padding:6px 12px;white-space:nowrap}
+nav button.activa{background:var(--blanco);color:var(--marca)}
+nav button:not([data-seg="todos"]).activa::before{content:"✓ "}
+nav button:focus-visible{outline:3px solid var(--claro);outline-offset:2px}
+section{margin-top:36px;padding-top:18px;border-top:3px solid var(--blanco)}
+section:first-of-type{margin-top:20px}
+h2{margin:0 0 14px;font-size:1.15rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--blanco);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h2 small,h3 small{font-size:.8rem;font-weight:500;color:#D5E4FF;text-transform:none;letter-spacing:0}
+.tam{margin-top:22px;padding-top:12px;border-top:2px solid var(--claro)}
+.tam:first-of-type{margin-top:6px}
+h3{margin:0 0 12px;font-size:1rem;font-weight:800;color:var(--claro);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.tam[hidden]{display:none!important}
+.lista{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:700px){.lista{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1050px){.lista{grid-template-columns:repeat(3,1fr)}}
+.prod{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;padding:10px;background:#fff;color:var(--fg);border:1.5px solid var(--claro);border-radius:10px;min-width:0;break-inside:avoid;page-break-inside:avoid}
+.foto{width:96px;height:96px;background:#fff;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;overflow:hidden}
+.foto img{width:100%;height:100%;object-fit:contain;background:#fff}
+.prod[hidden],section[hidden]{display:none!important}
+.foto .sin{font-weight:800;font-size:.7rem;color:var(--marca);opacity:.45;letter-spacing:.05em;text-align:center;padding:4px;text-transform:uppercase}
+.datos{min-width:0;display:flex;flex-direction:column;gap:3px}
+.desc{font-weight:700;font-size:.95rem;overflow-wrap:anywhere}
+.det{font-size:.75rem;color:var(--muted)}
+.op{display:flex;flex-wrap:wrap;gap:2px 14px;margin-top:4px;align-items:baseline}
+.precio{display:flex;align-items:baseline;gap:6px}
+.precio span{font-size:.75rem;color:var(--muted)}
+.precio b{font-family:var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.precio.bulto b{font-size:1.05rem;color:var(--marca)}
+footer{margin-top:32px;color:#D5E4FF;font-size:.8rem}
+header.cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pdf{flex:0 0 auto;font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--marca);background:#fff;border:0;border-radius:10px;padding:9px 14px;white-space:nowrap}
+.pdf:hover{filter:brightness(.92)}.pdf:focus-visible{outline:3px solid var(--claro);outline-offset:2px}
+.pdf[disabled]{opacity:.6;cursor:wait}
+@media print{
+  @page{size:A4;margin:10mm}
+  html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{padding:0 4mm;font-size:11px}
+  .pdf,.arriba{display:none!important}
+  .lista{grid-template-columns:repeat(2,1fr);gap:6px}
+  .prod{grid-template-columns:70px 1fr;padding:6px}
+  .foto{width:70px;height:70px}
+  section{break-inside:auto}
+  h2,h3{break-after:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="cab"><div>
+    <h1>Catálogo de Bebidas</h1>
+    <p class="sub">Precios sujetos a posibles cambios</p>
+  </div><button type="button" class="pdf" id="btnPdf" onclick="descargarPDF()" title="Guardar el catálogo como PDF">⬇ Descargar PDF</button></header>
+  <div class="arriba">
+    <input class="buscar" id="q" type="search" placeholder="Buscar (ej. Quilmes, fernet, 710)" aria-label="Buscar producto" autocomplete="off">
+    <p class="cuenta" id="cuenta" hidden></p>
+    <nav id="nav" aria-label="Categorías"></nav>
+  </div>
+  <div id="cat"></div>
+  <footer>Lago Puelo · Elebes · Precios en pesos argentinos, cargados el 25/10/2026. Fotos ilustrativas.</footer>
+</div>
+<script>
+// Catalogo: [categoria, [[tamaño o tipo, [producto, ...]], ...]]
+// producto: [nombre, foto (img/bebidas/<foto>.jpg o ''), [[unidades del bulto o 0 si es precio suelto, precio], ...]]
+const BEBIDAS = [
+  ['Cervezas', [
+    ['Latas 473 cc', [
+      ['Brahma lata 473 cc', 'brahma-473', [[6, 11000], [24, 43000]]],
+      ['Quilmes Clásica lata 473 cc', 'quilmes-473', [[6, 11000], [24, 43000]]],
+      ['Quilmes Stout lata 473 cc', '', [[6, 13000]]],
+      ['Schneider lata 473 cc', '', [[6, 11000]]],
+      ['Heineken lata 473 cc', 'heineken-473', [[6, 16500]]],
+      ['Imperial Golden lata 473 cc', '', [[6, 13000]]],
+      ['Andes sabores lata 473 cc', '', [[6, 13000]]],
+      ['Miller lata 473 cc', '', [[6, 13000]]],
+      ['Stella Artois lata 473 cc', '', [[6, 13000]]],
+    ]],
+    ['Botella 330 cc', [
+      ['Corona botella 330 cc', '', [[6, 15500]]],
+    ]],
+    ['710 cc', [
+      ['Brahma lata 710 cc', 'brahma-710', [[4, 12000]]],
+      ['Quilmes Clásica lata 710 cc', 'quilmes-710', [[4, 12000]]],
+      ['Heineken lata 710 cc', 'heineken-710', [[6, 24000]]],
+      ['Schneider lata 710 cc', 'schneider-710', [[6, 17000]]],
+      ['Imperial Golden lata 710 cc', 'imperial-golden-710', [[6, 19000]]],
+      ['361 latón 710 cc', '', [[6, 11000]]],
+      ['361 botella 710 cc', '', [[0, 11500]]],
+      ['Budweiser 710 cc', '', [[4, 11000]]],
+      ['Corona botella 710 cc', 'corona-710', [[12, 52000]]],
+    ]],
+  ]],
+  ['Vinos', [
+    ['1125 y 1225 ml', [
+      ['Santa Filomena 1125 ml', '', [[0, 17500]]],
+      ['Viña de Alvear 1225 ml', '', [[6, 16000]]],
+      ['Viña de Balbo 1225 ml', '', [[6, 16000]]],
+    ]],
+    ['Por botella', [
+      ['Federico B dulce', '', [[0, 4200]]],
+      ['Otro Loco Más', 'otro-loco-mas', [[0, 3500]]],
+      ['Hormiga Negra Malbec', 'hormiga-negra', [[0, 2500]]],
+      ['Cosecha Tardía Norton', 'cosecha-tardia', [[0, 4200]]],
+      ['Santa Julia dulce', '', [[0, 8200]]],
+    ]],
+  ]],
+  ['Aperitivos', [
+    ['Fernet', [
+      ['Fernet Branca 750 ml', '', [[0, 15700]]],
+      ['Fernet Branca 450 ml', '', [[0, 11700]]],
+      ['Fernet 1882 750 ml', '', [[0, 7900]]],
+      ['Fernet 1882 lata', '', [[6, 11000]]],
+      ['Fernandito Forte (fernet con cola 1 L)', 'fernandito-forte', [[0, 6500]]],
+    ]],
+    ['Gin', [
+      ['Gin Forte', '', [[0, 6500]]],
+      ['Gin Merle clásico', '', [[0, 9000]]],
+      ['Gin Merle Pink botella', '', [[0, 9500]]],
+    ]],
+    ['Vodka', [
+      ['Skyy sabores', '', [[0, 9500]]],
+      ['Skyy Cosmic', '', [[0, 12500]]],
+      ['Sernova Raspberry', '', [[0, 6500]]],
+      ['Smirnoff sabores botella', '', [[0, 8500]]],
+      ['Smirnoff lata sabores', '', [[6, 16500]]],
+      ['Dr. Lemon sabores', '', [[6, 13000]]],
+    ]],
+    ['Aperitivos y licores', [
+      ['Gancia 950 ml', '', [[0, 6500]]],
+      ['Gancia lata', '', [[0, 13000]]],
+      ['Gancia lata Cero', '', [[0, 13000]]],
+      ['New Style sabores', '', [[0, 3500]]],
+      ['New Style raspberry / ananá / durazno / chicle', '', [[0, 4700]]],
+      ['Licor de melón Cusenier', '', [[0, 6500]]],
+    ]],
+  ]],
+  ['Energizantes', [
+    ['Energizantes', [
+      ['Monster Mango / Rosa / Negro', '', [[6, 15500]]],
+      ['Speed XXL', '', [[0, 2150]]],
+      ['Speed chico', '', [[0, 1350]]],
+    ]],
+  ]],
+  ['Jugos y gaseosas', [
+    ['Gaseosas', [
+      ['Coca-Cola 2,25 L', '', [[6, 26500]]],
+    ]],
+    ['Jugos', [
+      ['Baggio Pronto multifruta 1 L', 'baggio-multifruta-1l', [[8, 15000]]],
+      ['Baggio Fresh 1,5 L', 'baggio-fresh-15', [[6, 7900]]],
+    ]],
+  ]],
+  ['Petacas', [
+    ['Petacas', [
+      ['Whisky Doble V petaca', 'petaca-doble-v', [[0, 2100]]],
+      ['Café al coñac Cusenier petaca', 'petaca-cafe-conac', [[0, 2100]]],
+      ['Licor Cusenier petaca', '', [[0, 2100]]],
+    ]],
+  ]],
+  ['Alfajores', [
+    ['Alfajores', [
+      ['Rasta negro', 'rasta-negro', [[18, 17800]]],
+      ['Rasta blanco', 'rasta-blanco', [[18, 17800]]],
+      ['Alfajor Recova', '', [[24, 15500]]],
+    ]],
+  ]],
+];
+const FOTOS_V = '1';   // cambiar cuando se reemplazan las fotos
+const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:0,maximumFractionDigits:0});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function sinFoto(img, texto){ const s = document.createElement('span'); s.className = 'sin'; s.textContent = texto; img.replaceWith(s); }
+
+const tarjeta = (p, cat, tam) => {
+  const [nombre, foto, ops] = p;
+  const marca = nombre.split(/\s/)[0];
+  const img = foto ? `<img src="img/bebidas/${esc(foto)}.jpg?v=${FOTOS_V}" alt="${esc(nombre)}" loading="lazy" onerror="sinFoto(this,'${esc(marca)}')">` : `<span class="sin">${esc(marca)}</span>`;
+  const precios = ops.map(([u, pr]) => u
+    ? `<div class="op"><div class="precio bulto"><span>Bulto x${u}</span><b>${fmt.format(pr)}</b></div><div class="precio"><span>Unidad</span><b>${fmt.format(pr / u)}</b></div></div>`
+    : `<div class="op"><div class="precio bulto"><span>Unidad</span><b>${fmt.format(pr)}</b></div></div>`).join('');
+  return `<article class="prod" data-buscar="${esc(norm(nombre + ' ' + cat + ' ' + tam))}">
+    <div class="foto">${img}</div>
+    <div class="datos">
+      <div class="desc">${esc(nombre)}</div>
+      <div class="det">${ops.some(o => o[0]) ? 'Bulto x' + ops.filter(o => o[0]).map(o => o[0]).join(' o x') : 'Precio por unidad'}</div>
+      ${precios}
+    </div>
+  </article>`;
+};
+const cuenta = n => `${n} ${n === 1 ? 'producto' : 'productos'}`;
+document.getElementById('cat').innerHTML = BEBIDAS.map(([cat, tams], i) => {
+  const total = tams.reduce((s, t) => s + t[1].length, 0);
+  // si la categoria tiene un solo grupo con su mismo nombre, no se repite el subtitulo
+  const cuerpo = tams.map(([tam, prods]) => `
+    <div class="tam">
+      ${tams.length > 1 || tam !== cat ? `<h3>${esc(tam)} <small>${cuenta(prods.length)}</small></h3>` : ''}
+      <div class="lista">${prods.map(p => tarjeta(p, cat, tam)).join('')}</div>
+    </div>`).join('');
+  return `<section id="s${i}"><h2>${esc(cat)} <small>${cuenta(total)}</small></h2>${cuerpo}</section>`;
+}).join('');
+document.getElementById('nav').innerHTML = `<button type="button" data-seg="todos" class="activa" aria-pressed="true">Todas</button>` +
+  BEBIDAS.map(([cat], i) => `<button type="button" data-seg="s${i}" aria-pressed="false">${esc(cat)}</button>`).join('');
+
+// Categorias tildadas: ninguna = se ven todas; una o varias = solo esas (se combinan con el buscador)
+const elegidos = new Set();
+function tildar(id){
+  if (id === 'todos') elegidos.clear(); else if (elegidos.has(id)) elegidos.delete(id); else elegidos.add(id);
+  document.querySelectorAll('nav button').forEach(b => {
+    const on = b.dataset.seg === 'todos' ? elegidos.size === 0 : elegidos.has(b.dataset.seg);
+    b.classList.toggle('activa', on); b.setAttribute('aria-pressed', on);
+  });
+  buscar();
+  window.scrollTo({top: 0});
+}
+function buscar(){
+  const q = norm(document.getElementById('q').value.trim());
+  const palabras = q.split(/\s+/).filter(Boolean);
+  let n = 0;
+  document.querySelectorAll('section').forEach(sec => {
+    const tildado = elegidos.size === 0 || elegidos.has(sec.id);
+    let vis = 0;
+    sec.querySelectorAll('.prod').forEach(pr => { const ok = tildado && palabras.every(w => pr.dataset.buscar.includes(w)); pr.hidden = !ok; if (ok) vis++; });
+    sec.querySelectorAll('.tam').forEach(s => { s.hidden = !s.querySelector('.prod:not([hidden])'); });
+    sec.hidden = vis === 0; n += vis;
+  });
+  const c = document.getElementById('cuenta');
+  c.hidden = !(q || elegidos.size); c.textContent = n ? cuenta(n) : 'Ningún producto coincide con la búsqueda.';
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => tildar(b.dataset.seg)));
+document.getElementById('q').addEventListener('input', buscar);
+
+// Descargar PDF: carga todas las fotos (vienen diferidas) y abre "Guardar como PDF" con el nombre del catalogo y la fecha
+async function descargarPDF(){
+  const b=document.getElementById('btnPdf'); b.disabled=true; const t0=b.textContent; b.textContent='Preparando…';
+  const imgs=[...document.images]; imgs.forEach(i=>{ i.loading='eager'; });
+  await Promise.race([Promise.all(imgs.map(i=>i.complete? 0 : new Promise(r=>{ i.addEventListener('load',r,{once:true}); i.addEventListener('error',r,{once:true}); }))), new Promise(r=>setTimeout(r,10000))]);
+  const tit=document.title, h=new Date(Date.now()-3*3600e3).toISOString().slice(0,10).split('-').reverse().join('-');
+  document.title=`Catálogo de Bebidas - ${h}`;
+  b.disabled=false; b.textContent=t0;
+  window.print(); setTimeout(()=>{ document.title=tit; },1000);
+}
+</script>
+</body>
+</html>
