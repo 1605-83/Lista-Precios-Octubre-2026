@@ -112,6 +112,7 @@ const SEGMENTOS = [
   ['Pañales',             d => /^(PL|PA[ÑN]AL|BABYSEC|PLBABYSEC)(?=\s)/i.test(d) && !/COTIDIAN/i.test(d)],
   ['Toallitas húmedas',   d => /^(TH\s|TOALLAS HUM)/i.test(d)],
   ['Toallas femeninas',   d => /^(TF|TD|PD)\s/i.test(d) || /COTIDIAN|LADYSOFT/i.test(d)],
+  ['Paños de limpieza',   d => /MAXWIPE/i.test(d)],
   ['Otros',               d => true],
 ];
 // Sublineas dentro de un segmento: [nombre, color de la linea, regla]. La ultima regla toma el resto.
@@ -126,7 +127,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 const fecha = iso => iso ? iso.split('-').reverse().join('/') : '';
 const limpiar = d => d.replace(/^(PL|TH|PH|RC|SE|PO|PÑ|TF|TD|PD)\s+/i,'').replace(/\s+/g,' ').trim();
 const marca = d => (d.match(/BABYSEC|HIGIENOL|ELITE|SUSSEX|NOBLE|LADYSOFT|COTIDIAN|CARILINA/i) || ['SOFTYS'])[0].toUpperCase();
-const FOTOS_V = '4';   // cambiar cuando se reemplazan las fotos, para que el navegador no muestre las viejas
+const FOTOS_V = '5';   // cambiar cuando se reemplazan las fotos, para que el navegador no muestre las viejas
 const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 // Segmentos tildados: ninguno = se ven todos; uno o varios = solo esos (se combinan con el buscador)
 const elegidos = new Set();
