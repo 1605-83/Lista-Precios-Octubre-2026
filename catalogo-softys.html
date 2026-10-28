@@ -38,6 +38,11 @@ section:first-of-type{margin-top:20px}
 h2{margin:0 0 14px;font-size:1.15rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--marca);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 h2 small{font-size:.8rem;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
 .sub{margin-top:22px;padding-top:12px;border-top:3px solid var(--c)}
+/* pañales por tamaño de paquete dentro de cada línea */
+.packg{margin-top:14px}
+.pack{margin:0 0 8px;font-size:.88rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--c);display:flex;align-items:center;gap:8px}
+.pack::after{content:"";flex:1;height:1px;background:var(--c);opacity:.35}
+.pack small{font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)}
 .sub:first-of-type{margin-top:6px}
 h3{margin:0 0 12px;font-size:1rem;font-weight:800;color:var(--c);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 h3 small{font-size:.8rem;font-weight:500;color:var(--muted)}
@@ -122,6 +127,20 @@ const SUBLINEAS = {
     ['Babysec Premium',    '#7b5ea7', d => true],                                // Premium Soft, Super Premium, Pants: violetas
   ],
 };
+// tamaño de paquete de los pañales Babysec, por cantidad de pañales segun el talle:
+//   Jumbo: M 68, G 60, XG 48-52, XXG 44-50 · Hiper: M 48, G 40, XG 32, XXG 30, XXXG 28 · Standard: el resto (8 a 30 un., pants)
+const UMBRAL = { M:[40,60], G:[36,56], XG:[28,45], XXG:[26,42], XXXG:[24,40] };   // [desde hiper, desde jumbo]
+const tipoPack = d => {
+  const m = String(d).toUpperCase().match(/(XXXG|XXG|XX6|XG|CHX?|G|M|P)\s*X?\s*(\d+)\s*[\/X]/);
+  if (!m) return 'Standard pack';
+  const t = m[1] === 'XX6' ? 'XXG' : m[1], n = +m[2], u = UMBRAL[t];
+  return !u ? 'Standard pack' : n >= u[1] ? 'Jumbo pack' : n >= u[0] ? 'Hiper pack' : 'Standard pack';
+};
+const PACKS = [
+  ['Standard pack', p => tipoPack(p[1]) === 'Standard pack'],
+  ['Hiper pack',    p => tipoPack(p[1]) === 'Hiper pack'],
+  ['Jumbo pack',    p => tipoPack(p[1]) === 'Jumbo pack'],
+];
 const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fecha = iso => iso ? iso.split('-').reverse().join('/') : '';
@@ -149,7 +168,7 @@ function buscar(){
     const tildado = elegidos.size === 0 || elegidos.has(sec.id);
     let vis = 0;
     sec.querySelectorAll('.prod').forEach(pr => { const ok = tildado && palabras.every(w => pr.dataset.buscar.includes(w)); pr.hidden = !ok; if (ok) vis++; });
-    sec.querySelectorAll('.sub').forEach(s => { s.hidden = !s.querySelector('.prod:not([hidden])'); });
+    sec.querySelectorAll('.sub, .packg').forEach(s => { s.hidden = !s.querySelector('.prod:not([hidden])'); });
     sec.hidden = vis === 0; n += vis;
   });
   const c = document.getElementById('cuenta');
@@ -186,10 +205,19 @@ fetch(DATOS, {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status)
     if (!subs) return `<div class="lista">${g.prods.map(tarjeta).join('')}</div>`;
     const partes = subs.map(([nombre, color]) => ({nombre, color, prods: []}));
     for (const p of g.prods) partes[subs.findIndex(([, , f]) => f(p[1]))].prods.push(p);
+    // pañales: dentro de cada linea, por tamaño de paquete (se ve en los paquetes por bulto: 3 = Jumbo, 4 = Hiper, el resto Standard)
+    const conPacks = g.nombre === 'Pañales';
+    const lista = prods => {
+      if (!conPacks) return `<div class="lista">${prods.map(tarjeta).join('')}</div>`;
+      return PACKS.map(([nombre, f]) => ({nombre, prods: prods.filter(p => PACKS.find(([, g2]) => g2(p))[0] === nombre)}))
+        .filter(k => k.prods.length).map(k => `
+        <div class="packg"><h4 class="pack">${esc(k.nombre)} <small>${k.prods.length} productos</small></h4>
+        <div class="lista">${k.prods.map(tarjeta).join('')}</div></div>`).join('');
+    };
     return partes.filter(s => s.prods.length).map(s => `
       <div class="sub" style="--c:${s.color}">
         <h3>${esc(s.nombre)} <small>${s.prods.length} productos</small></h3>
-        <div class="lista">${s.prods.map(tarjeta).join('')}</div>
+        ${lista(s.prods)}
       </div>`).join('');
   };
   document.getElementById('cat').innerHTML = usados.map((g, i) => `
