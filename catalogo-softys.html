@@ -106,13 +106,13 @@ document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelec
 // (Despues de la Ñ no se usa \b: en JavaScript la Ñ no cuenta como letra para \b)
 const SEGMENTOS = [
   ['Papel higiénico',     d => /^PH\s/i.test(d)],
+  ['Paños de limpieza',   d => /MAXWIPE/i.test(d)],
   ['Rollos de cocina',    d => /^RC\s/i.test(d)],
   ['Servilletas',         d => /^(SE|SERV)\s/i.test(d)],
   ['Pañuelos y faciales', d => /^(PO|P[ÑN])(?=\s)/i.test(d)],
   ['Pañales',             d => /^(PL|PA[ÑN]AL|BABYSEC|PLBABYSEC)(?=\s)/i.test(d) && !/COTIDIAN/i.test(d)],
   ['Toallitas húmedas',   d => /^(TH\s|TOALLAS HUM)/i.test(d)],
   ['Toallas femeninas',   d => /^(TF|TD|PD)\s/i.test(d) || /COTIDIAN|LADYSOFT/i.test(d)],
-  ['Paños de limpieza',   d => /MAXWIPE/i.test(d)],
   ['Otros',               d => true],
 ];
 // Sublineas dentro de un segmento: [nombre, color de la linea, regla]. La ultima regla toma el resto.
