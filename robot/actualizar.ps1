@@ -403,6 +403,10 @@ if ($Sufijo -eq '' -and $stockFilas.Count -gt 50) {   # con menos de 50 filas la
     [IO.File]::WriteAllText($stockDest, $stockJson + "`n", (New-Object Text.UTF8Encoding $false))
     Write-Host "Stock: $($sin.Count) productos sin stock (base al $stockCorte)"
   } else { Write-Host "Stock sin cambios: $($sin.Count) productos sin stock" }
+  # Unidades disponibles de cada articulo (todos los proveedores): las lee el diagnostico del Reporte de ventas para los dias de cobertura
+  $uni = [ordered]@{}; foreach ($k in ($hay.Keys | Sort-Object { Orden $_ })) { if ($hay[$k] -ne 0) { $uni[$k] = [math]::Round($hay[$k], 2) } }
+  [IO.File]::WriteAllText((Join-Path $Salida 'stock-unidades.json'), (([ordered]@{ corte = $stockCorte; u = $uni } | ConvertTo-Json -Depth 3 -Compress) + "`n"), (New-Object Text.UTF8Encoding $false))
+  Write-Host "Stock por articulo: $($uni.Count) articulos con unidades"
 }
 
 $nuevo = [ordered]@{ lista = "LISTA $Lista"; listas = $listas }
