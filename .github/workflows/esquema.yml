@@ -1,0 +1,14 @@
+name: Consulta temporal
+on: workflow_dispatch
+jobs:
+  c:
+    runs-on: windows-latest
+    steps:
+      - shell: powershell
+        env:
+          GESCOM_LPE_CLAVE: ${{ secrets.GESCOM_LPE_CLAVE }}
+        run: |
+          function Q($sql) { $r = Invoke-WebRequest -UseBasicParsing -Uri 'https://datos-gescom.panelempresas.workers.dev/consulta' -Method POST -Headers @{ Authorization = "Bearer $env:GESCOM_LPE_CLAVE" } -ContentType 'application/json' -Body ([Text.Encoding]::UTF8.GetBytes((@{ sql = $sql } | ConvertTo-Json -Compress))); [Text.Encoding]::UTF8.GetString($r.RawContentStream.ToArray()) }
+          Q "SELECT codigo, descripcion, proveedor, unidades_bulto, costo_bulto, bloqueado FROM articulos WHERE codigo LIKE '%14866' OR descripcion LIKE '%1882%'"
+          Q "SELECT articulo, lista, unidad, factor, neto, actualizado FROM precios WHERE articulo LIKE '%14866'"
+          Q "SELECT articulo, presentacion, unidades FROM digip_codigos_barras WHERE articulo LIKE '%14866'"
