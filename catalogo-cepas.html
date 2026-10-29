@@ -104,7 +104,14 @@ document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelec
 
 // Segmentos en el orden del catalogo de Cepas; el segmento de cada producto viene de segmentos-cepas.json
 const ORDEN = ['Aperitivos','Amargos','Alto grado','Otros'];
-const SUBLINEAS = {};
+// Sublineas de un segmento: [nombre, color, filtro por descripcion]; la ultima se queda con el resto
+const SUBLINEAS = {
+  'Amargos': [
+    ['Terma', '#2e7d32', d => /TERMA/i.test(d)],
+    ['Tres Torres', '#c62828', d => /TRES TORRES/i.test(d)],
+    ['Otros amargos', '#6b7280', () => true],
+  ],
+};
 const JUNTO = { '39014866': '39013909' };   // producto que va al lado de otro: 1882 pomelo junto al fernet con cola lata
 const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
