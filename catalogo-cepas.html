@@ -105,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => { if(L2) document.querySelec
 // Segmentos en el orden del catalogo de Cepas; el segmento de cada producto viene de segmentos-cepas.json
 const ORDEN = ['Aperitivos','Amargos','Alto grado','Otros'];
 const SUBLINEAS = {};
+const JUNTO = { '39014866': '39013909' };   // producto que va al lado de otro: 1882 pomelo junto al fernet con cola lata
 const fmt = new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fecha = iso => iso ? iso.split('-').reverse().join('/') : '';
@@ -146,6 +147,12 @@ Promise.all([DATOS, 'segmentos-cepas.json'].map(u => fetch(u, {cache:'no-store'}
   document.getElementById('vig').textContent = 'vigencia ' + fecha(l.vigencia);
   const grupos = ORDEN.map(nombre => ({nombre, prods: []}));
   for (const p of l.productos) { const i = ORDEN.indexOf(SEG[String(p[0])]); grupos[i < 0 ? ORDEN.length - 1 : i].prods.push(p); }
+  for (const g of grupos) for (const [c, ref] of Object.entries(JUNTO)) {
+    const i = g.prods.findIndex(p => String(p[0]) === c);
+    if (i < 0 || !g.prods.some(p => String(p[0]) === ref)) continue;
+    const [p] = g.prods.splice(i, 1);
+    g.prods.splice(g.prods.findIndex(p => String(p[0]) === ref) + 1, 0, p);
+  }
   const usados = grupos.filter(g => g.prods.length);
   document.getElementById('nav').innerHTML = `<button type="button" data-seg="todos" class="activa" aria-pressed="true">Todos</button>` +
     usados.map((g, i) => `<button type="button" data-seg="s${i}" aria-pressed="false">${esc(g.nombre)}</button>`).join('');
