@@ -95,7 +95,34 @@ header.cab{display:flex;justify-content:space-between;align-items:flex-start;gap
   section{break-inside:auto;border-top-color:var(--marca);-webkit-print-color-adjust:exact;print-color-adjust:exact}
   h2{break-after:avoid}
 }
-</style>
+/* Formato vitrina: tarjetas verticales con la foto grande arriba, 2/3/4 por fila, fondo crema (copiado del catalogo Cepas) */
+:root{--soft:#faf6f0}
+body{background:var(--soft)}
+h1{color:var(--marca);font-size:1.8rem;letter-spacing:-.01em}
+nav button{color:var(--marca);border-color:var(--marca)} nav button.activa{background:var(--marca)}
+.arriba{background:var(--soft)}
+section{border-top:0;margin-top:40px;padding-top:0}
+h2{background:var(--marca);color:#fff;padding:12px 16px;border-radius:12px;margin-bottom:18px}
+h2 small{color:#f3e3c4}
+.sub{border-top:0;padding-top:0}
+h3{color:var(--fg);font-size:1.05rem;padding-left:10px;border-left:5px solid var(--c)}
+.lista{grid-template-columns:repeat(2,1fr)!important;gap:12px}
+@media (min-width:700px){.lista{grid-template-columns:repeat(3,1fr)!important}}
+@media (min-width:1050px){.lista{grid-template-columns:repeat(4,1fr)!important}}
+.prod{display:flex;flex-direction:column;align-items:stretch;padding:0;border:0;border-radius:14px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 14px rgba(0,0,0,.05);overflow:hidden;position:relative}
+.foto{width:100%;height:auto;aspect-ratio:1/1;border:0;border-radius:0;border-bottom:1px solid var(--line)}
+.foto img{padding:10px}
+.datos{padding:10px 12px 12px;gap:4px;flex:1}
+.desc{font-size:.88rem;line-height:1.25;min-height:2.5em}
+.cod{font-size:.7rem}
+.precios{flex-direction:column;gap:2px;margin-top:auto;padding-top:8px;border-top:1px dashed var(--line)}
+.precio{justify-content:space-between;flex-wrap:wrap;column-gap:6px}
+.precio.bulto b{font-size:1.15rem;color:var(--marca)}
+.prod.sinst{outline:2px solid #C62828}
+.sinstock{position:absolute;top:8px;left:8px;margin:0;z-index:1}
+.pdf{background:var(--marca)}
+section .sub{color:var(--fg);font-size:inherit}
+@media (max-width:520px){.precio.bulto b{font-size:.9rem}.precio b{font-size:.78rem}.precio span{font-size:.66rem}.datos{padding:9px 9px 11px}.desc{font-size:.82rem}.precio{gap:4px}}</style>
 </head>
 <body>
 <div class="wrap">
