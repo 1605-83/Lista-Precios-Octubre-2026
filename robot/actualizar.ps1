@@ -219,8 +219,8 @@ function ListaSoftys {
     $pal = $null
     if ($logistica.ContainsKey($cod)) { $qty = $logistica[$cod][0]; $pal = $logistica[$cod][1] }
     if ($cod -eq 1504739) { $nota = 'El sistema lo carga con 6 por bulto; segun la tabla de logistica y la descripcion (26/8) son 8. Se toman 8.' }
-    if ($cod -eq 1501590 -and -not $qty) {   # Higienol HS Max 80x6: el precio de la base es por paquete y no se sabe cuantos trae el bulto
-      if ($p.unidad -gt 0) { $out += ,@($cod, $p.desc, $pal, $null, $null, $null, (R2 $p.unidad)) }; continue }
+    if ($cod -eq 1501590 -and $p.pack -eq $null) {   # Higienol HS Max 80x6: el precio de la base es por paquete; el bulto trae 4 paquetes (Bruno, 10/11/2026)
+      $qty = 4; $bulto = if ($p.unidad -gt 0) { $p.unidad * 4 } else { $null } }
     if (-not $bulto -or $bulto -lt 1) { continue }   # sin precio en la base
     $out += ,@($cod, $p.desc, $pal, $qty, (R2 $bulto), $nota)
   }
