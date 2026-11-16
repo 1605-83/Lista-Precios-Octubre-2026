@@ -154,12 +154,24 @@ $dirManual = Join-Path (Split-Path $PSScriptRoot -Parent) 'manual'
 if (Test-Path $dirManual) {
   foreach ($fm in (Get-ChildItem $dirManual -Filter 'precios-*.json')) {
     $man = Get-Content $fm.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
-    $mp = @{}; foreach ($m in $man.filas) { if ([string]$m[1] -eq $LISTA) { $mp["$($m[0])|$($m[2])"] = [double]$m[3] } }
+    # "hasta" (opcional): el archivo pisa los precios de la base cargados antes de esa fecha (UTC), aunque sean
+    # posteriores a "desde". Sirve cuando Gescom cargo mal una lista (Clorox 16/11/2026): se usa la lista del proveedor.
+    $lim = if ($man.hasta) { [string]$man.hasta } else { [string]$man.desde }
+    # "por_unidad": cada fila es [articulo, lista, '*', precio final de 1 unidad]; el Pack vale ese precio x su factor
+    $porU = [bool]$man.por_unidad
+    $mp = @{}; foreach ($m in $man.filas) { if ([string]$m[1] -eq $LISTA) { if ($porU) { $mp["$($m[0])"] = [double]$m[3] } else { $mp["$($m[0])|$($m[2])"] = [double]$m[3] } } }
     $n = 0
     foreach ($f in $filas) {
-      $k = "$($f.articulo)|$($f.unidad)"
-      if (-not $mp.ContainsKey($k) -or [string]$f.actualizado -ge $man.desde) { continue }
-      $f.neto = ($mp[$k] - [double]$f.impuesto_interno * [double]$f.factor) / (1 + [double]$f.alicuota_iva)
+      if ($porU) {
+        $k = "$($f.articulo)"
+        if (-not $mp.ContainsKey($k) -or [string]$f.actualizado -ge $lim) { continue }
+        if ([string]$f.unidad -eq 'Pack') { $fin = $mp[$k] * [double]$f.factor } elseif ([string]$f.unidad -eq 'Unidad') { $fin = $mp[$k] } else { continue }
+      } else {
+        $k = "$($f.articulo)|$($f.unidad)"
+        if (-not $mp.ContainsKey($k) -or [string]$f.actualizado -ge $lim) { continue }
+        $fin = $mp[$k]
+      }
+      $f.neto = ($fin - [double]$f.impuesto_interno * [double]$f.factor) / (1 + [double]$f.alicuota_iva)
       $f.actualizado = "$($man.desde)T10:00:00.000Z"; $n++
     }
     if ($n) { Write-Host "Precios manuales de $($fm.Name) (lista $LISTA): $n" }
